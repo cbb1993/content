@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/lib_shape_rect_main_radius" android:state_activated="true"/>
+    <item android:drawable="@drawable/lib_shape_rect_main_radius" android:state_pressed="true"/>
+    <item android:drawable="@drawable/lib_shape_rect_stroke_hint_radius"/>
+</selector>

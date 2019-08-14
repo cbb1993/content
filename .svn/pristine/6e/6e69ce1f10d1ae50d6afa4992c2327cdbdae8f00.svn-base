@@ -1,0 +1,259 @@
+package com.huanhong.content.model.split.adaptive;
+
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Rect;
+import android.media.MediaPlayer;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.RelativeLayout;
+import android.widget.VideoView;
+
+import com.huanhong.content.model.plan.Content;
+import com.huanhong.content.util.FileUtil;
+import com.zyn.lib.util.MediaUtils;
+import com.zyn.lib.util.ThreadUtils;
+import com.zyn.lib.util.Utils;
+import com.zyn.lib.util.ViewUtils;
+
+import java.util.List;
+
+public class VideoAdapter extends Adapter {
+    private RelativeLayout mRoot;
+    private VideoView mVideoView;
+    private List<Content> mPathList;
+    private String mCurr;
+    private int mCount = -1;
+    private long mStartTime = 0;
+    private Boolean mIsNeedSeekTo = true;
+
+    public VideoAdapter(Context context, List<Content> pathList, long startTime, boolean isNeedSeekTo) {
+        super(context);
+        mPathList = pathList;
+        mStartTime = startTime;
+        mIsNeedSeekTo = isNeedSeekTo;
+    }
+
+    @Override
+    public void init() {
+        mRoot = new RelativeLayout(getContext());
+
+        if (mPathList == null) {
+            return;
+        }
+
+        //创建并添加video view
+        mVideoView = new VideoView(getContext());
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+        mRoot.addView(mVideoView, layoutParams);
+
+        //视频播放完成回调
+        mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                Log.e(getClass().getSimpleName(), " 视频结束");
+                startNextVideo(0);
+            }
+        });
+
+        ThreadUtils.runOnWorkThread(new Runnable() {
+            @Override
+            public void run() {
+                long duration = 0;
+                if (mIsNeedSeekTo) {
+                    duration = seekTo(System.currentTimeMillis() - mStartTime);
+                }
+                final long finalDuration = duration;
+                ThreadUtils.runOnMainThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        startNextVideo((int) finalDuration);
+                    }
+                },0);
+            }
+        },0);
+    }
+
+    //有一个问题，设定下一个视频plantime-seekto开始回调和视频完成回调，可能同时调用此方法，线程同步问题
+    private void startNextVideo(int seekTo) {
+        if (mVideoView == null) {
+            return;
+        }
+
+        //先暂停
+        mVideoView.pause();
+        mVideoView.stopPlayback();
+
+        //获取下一个需要播放的视频
+        mCurr = getNextUrl();
+
+        //若playtime不为0，设定下个视频的开始时间
+        Content content = getCurrContent();
+        if (content != null) {
+            long playTime = content.getPlayTime();
+            //若playtime为0，则按照视频自身的时长播放
+            if (playTime != 0) {
+                ThreadUtils.runOnMainThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        startNextVideo(0);
+                    }
+                }, playTime - seekTo);
+            }
+        }
+
+        mVideoView.setVideoPath(mCurr);
+        mVideoView.start();
+        if (seekTo > 0) {
+            mVideoView.seekTo(seekTo);
+        }
+    }
+
+    @Override
+    public View getView() {
+        return mRoot;
+    }
+
+    @Override
+    public Content getCurrContent() {
+        try {
+            return mPathList.get(mCount);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @Override
+    public void deinit() {
+        if (mVideoView != null) {
+            mVideoView.pause();
+            mVideoView.stopPlayback();
+            mVideoView = null;
+        }
+
+        if (mRoot != null) {
+            mRoot.removeAllViews();
+            mRoot = null;
+        }
+    }
+
+    @Override
+    public Bitmap getBitmapShot() {
+        if (mVideoView != null && !TextUtils.isEmpty(mCurr)) {
+            //获得view背景
+            Bitmap bg = ViewUtils.getViewShot(getView());
+            if (bg == null) {
+                return null;
+            }
+
+            //获得视频帧
+            Bitmap bitmap = MediaUtils.getMediaKeyFrame(FileUtil.getPathByShowPath(mCurr), mVideoView.getCurrentPosition());
+            if (bitmap != null) {
+                Canvas canvas = new Canvas(bg);
+                int bgWidth = bg.getWidth();
+                int bgHeight = bg.getHeight();
+                float bgRatio = (float) bgWidth / bgHeight;
+                int bmWidth = bitmap.getWidth();
+                int bmHeight = bitmap.getHeight();
+                float bmRatio = (float) bmWidth / bmHeight;
+                Rect rect = new Rect();
+                //如果view宽高比大于视频宽高比
+                if (bgRatio > bmRatio) {
+                    int width = (int) (bgHeight * bmRatio);
+                    rect.set((bgWidth - width) / 2, 0, bgWidth - (bgWidth - width) / 2, bgHeight);
+                } else {
+                    int height = (int) (bgWidth / bmRatio);
+                    rect.set(0, (bgHeight - height) / 2, bgWidth, bgHeight - (bgHeight - height) / 2);
+                }
+                canvas.drawBitmap(bitmap, new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight()), rect, null);
+            }
+            return bg;
+        }
+        return null;
+    }
+
+    private String getNextUrl() {
+        if (mPathList == null) {
+            return "";
+        }
+
+        if (++mCount >= mPathList.size()) {
+            if (Utils.isEmptyList(mPathList)) {
+                mCount = -1;
+            } else {
+                mCount = 0;
+            }
+        }
+        Log.e(getClass().getSimpleName(), "当前播放次序: " + mCount);
+        try {
+            return FileUtil.getPathByShowPath(mPathList
+                    .get(mCount)
+                    .getShowPath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "";
+    }
+
+    private long seekTo(long seekTo) {
+        if (mPathList == null || seekTo < 0) {
+            return 0;
+        }
+
+        //计数初始化
+        mCount = -1;
+
+        //获得播放列表总时长
+        long total = getTotalMediaDuration();
+        if (total == 0) {
+            return 0;
+        }
+
+        //取余
+        seekTo = seekTo % total;
+
+        //计算seekTo位置
+        for (int i = 0; i < mPathList.size(); i++) {
+            long duration = getMediaDuration(mPathList.get(i));
+            if (duration > seekTo) {
+                //count这里先-1，为了之后还要+1
+                mCount = i - 1;
+                return seekTo;
+            } else {
+                seekTo = seekTo - duration;
+            }
+        }
+
+        return 0;
+    }
+
+    private long getMediaDuration(Content content) {
+        if (content != null) {
+            return content.getPlayTime() > 0 ? content.getPlayTime() : MediaUtils.getMediaDuration(FileUtil.getPathByShowPath(content
+                    .getShowPath()));
+        }
+        return 0;
+    }
+
+    private long getTotalMediaDuration() {
+        if (mPathList == null) {
+            return 0;
+        }
+
+        long total = 0;
+        for (Content content : mPathList) {
+            total += getMediaDuration(content);
+
+        }
+        return total;
+    }
+}

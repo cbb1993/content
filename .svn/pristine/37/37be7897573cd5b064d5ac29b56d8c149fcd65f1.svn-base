@@ -1,0 +1,35 @@
+package com.huanhong.content.model.plan;
+
+import com.google.gson.annotations.SerializedName;
+import com.huanhong.content.model.split.Split;
+
+import java.io.Serializable;
+import java.util.List;
+
+public class Plan implements Serializable
+{
+    private List<Split> split;
+
+    @SerializedName("tasks")
+    private List<TotalSchedule> totalSchedule;
+
+    public List<Split> getSplit()
+    {
+        return split;
+    }
+
+    public void setSplit(List<Split> split)
+    {
+        this.split = split;
+    }
+
+    public List<TotalSchedule> getTotalSchedule()
+    {
+        return totalSchedule;
+    }
+
+    public void setTotalSchedule(List<TotalSchedule> totalSchedule)
+    {
+        this.totalSchedule = totalSchedule;
+    }
+}

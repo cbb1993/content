@@ -1,0 +1,98 @@
+package com.huanhong.content.model.login;
+
+import com.huanhong.content.model.api.ApiClient;
+import com.huanhong.content.model.api.ApiMethod;
+import com.huanhong.content.model.api.ApiProtocol;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class LoginHandler implements ApiClient.OnResponseListener
+{
+    private static LoginHandler mInstance;
+    private List<LoginHandlerListener> mLoginHandlerListenerList = new ArrayList<>();
+
+    private LoginHandler()
+    {
+        ApiClient
+                .getInstance()
+                .addOnResponseListener(ApiMethod.METHOD_LOGIN, this);
+    }
+
+    public static synchronized LoginHandler getInstance()
+    {
+        if (mInstance == null)
+        {
+            mInstance = new LoginHandler();
+        }
+
+        return mInstance;
+    }
+
+    public static void setInstance(LoginHandler instance)
+    {
+        mInstance = instance;
+    }
+
+    public void login()
+    {
+        login(Login.getLogin());
+    }
+
+    public void login(Login login)
+    {
+        ApiProtocol request = new ApiProtocol();
+        request.setId(ApiProtocol.getAutoID());
+        request.setType(ApiProtocol.TYPE_REQUEST);
+        request.setMethod(ApiMethod.METHOD_LOGIN);
+        request.setData(login);
+        ApiClient.getInstance().send(request);
+    }
+
+    public void addLoginHandlerListener(LoginHandler.LoginHandlerListener loginHandlerListener)
+    {
+        mLoginHandlerListenerList.add(loginHandlerListener);
+    }
+
+    public void removeLoginHandlerListenerList(LoginHandler.LoginHandlerListener loginHandlerListener)
+    {
+        mLoginHandlerListenerList.remove(loginHandlerListener);
+    }
+
+    @Override
+    public void onResponse(ApiProtocol apiProtocol)
+    {
+        if (mLoginHandlerListenerList != null)
+        {
+            for(LoginHandlerListener loginHandlerListener:mLoginHandlerListenerList)
+            {
+                if(loginHandlerListener!=null)
+                {
+                    loginHandlerListener.onLoginSucceed();
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onError(ApiProtocol apiProtocol)
+    {
+        if (mLoginHandlerListenerList != null)
+        {
+            for(LoginHandlerListener loginHandlerListener:mLoginHandlerListenerList)
+            {
+                if(loginHandlerListener!=null)
+                {
+                    loginHandlerListener.onLoginFailed(apiProtocol.getMessage());
+                }
+            }
+        }
+    }
+
+    public interface LoginHandlerListener
+    {
+        void onLoginSucceed();
+
+        void onLoginFailed(String msg);
+    }
+}

@@ -1,0 +1,102 @@
+package com.huanhong.content.model.plan;
+
+import android.support.annotation.NonNull;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
+import com.huanhong.content.model.api.ApiClient;
+import com.huanhong.content.model.api.ApiMethod;
+import com.huanhong.content.model.api.ApiProtocol;
+import com.huanhong.content.model.info.ClientInfo;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+
+
+public class PlanHandler implements ApiClient.OnRequestListener
+{
+    private static PlanHandler mInstance;
+    private PlanHandlerListener mPlanHandlerListener;
+    private Gson mGson = new Gson();
+
+    private PlanHandler()
+    {
+        ApiClient
+                .getInstance()
+                .addOnRequestListener(ApiMethod.METHOD_PLAN, this);
+    }
+
+    public static synchronized PlanHandler getInstance()
+    {
+        if (mInstance == null)
+        {
+            mInstance = new PlanHandler();
+        }
+
+        return mInstance;
+    }
+
+    @Override
+    public void onRequest(@NonNull ApiProtocol apiProtocol)
+    {
+        //如果正在同步中，拒绝这次同步请求
+        if (ClientInfo
+                .getInstance()
+                .isSyncing())
+        {
+            ApiClient
+                    .getInstance()
+                    .send(apiProtocol.getErrorResponse("正在同步中，不应该再次同步"));
+            return;
+        } else
+        {
+            ClientInfo
+                    .getInstance()
+                    .setSyncing(true);
+        }
+
+        try
+        {
+            Type type = new TypeToken<ArrayList<TotalPlan>>()
+            {
+            }.getType();
+            List<TotalPlan> totalPlanList = mGson.fromJson(((JsonObject)apiProtocol.getData()).getAsJsonArray("key").toString(), type);
+
+            //反馈
+            ApiClient
+                    .getInstance()
+                    .send(apiProtocol.getResponse(null));
+
+            if (mPlanHandlerListener != null)
+            {
+                mPlanHandlerListener.onPlan(totalPlanList);
+            }
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+            ApiClient
+                    .getInstance()
+                    .send(apiProtocol.getErrorResponse("数据解析异常"));
+            ClientInfo
+                    .getInstance()
+                    .setSyncing(false);
+        }
+    }
+
+    public PlanHandlerListener getPlanHandlerListener()
+    {
+        return mPlanHandlerListener;
+    }
+
+    public void setPlanHandlerListener(PlanHandlerListener planHandlerListener)
+    {
+        mPlanHandlerListener = planHandlerListener;
+    }
+
+    public interface PlanHandlerListener
+    {
+        void onPlan(List<TotalPlan> list);
+    }
+}

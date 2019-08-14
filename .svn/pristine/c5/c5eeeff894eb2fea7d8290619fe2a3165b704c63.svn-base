@@ -1,0 +1,31 @@
+package com.zyn.lib.presenter;
+
+import android.content.Context;
+
+
+public class BasePresenter<T>
+{
+    private Context mContext;
+    private T mView;
+
+    public BasePresenter(Context context, T view)
+    {
+        mContext = context;
+        mView = view;
+    }
+
+    public Context getContext()
+    {
+        return mContext;
+    }
+
+    public T getView()
+    {
+        return mView;
+    }
+
+    public void onDestory()
+    {
+
+    }
+}

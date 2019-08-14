@@ -1,0 +1,55 @@
+<resources>
+    <!-- list -->
+    <string name="lib_pushmsg_center_no_more_msg">没有更多数据了</string>
+    <string name="lib_pushmsg_center_pull_up_text">松开加载更多</string>
+    <string name="lib_pushmsg_center_pull_down_text">下拉刷新</string>
+    <string name="lib_pushmsg_center_pull_release_text">松开获取更多</string>
+    <string name="lib_pushmsg_center_pull_down_update_time">最后更新时间 : </string>
+    <string name="lib_pushmsg_center_load_more_ongoing_text">正在加载</string>
+    <string name="lib_xsearch_loading">正在加载中…</string>
+    <string name="lib_pull_to_refresh_header_hint_normal">下拉刷新</string>
+    <string name="lib_pull_to_refresh_header_hint_ready">松开加载</string>
+    <string name="lib_pull_to_refresh_header_hint_loading">@string/lib_pushmsg_center_load_more_ongoing_text</string>
+    <string name="lib_pull_to_refresh_header_last_time">@string/lib_pushmsg_center_pull_down_update_time</string>
+    <string name="lib_pull_to_refresh_footer_hint_ready">松开载入更多</string>
+
+    <string name="lib_pull_to_refresh_no_more_data">@string/lib_pushmsg_center_no_more_msg</string>
+    <string name="lib_pull_to_refresh_pull_label">下拉刷新…</string>
+    <string name="lib_pull_to_refresh_refreshing_label">正在载入…</string>
+    <string name="lib_pull_to_refresh_release_label">放开以刷新…</string>
+
+    <!-- loading-->
+    <string name="lib_loading_title">提示</string>
+    <string name="lib_loading_msg">请稍候...</string>
+
+    <!-- upload image dialog-->
+    <string name="lib_take_photo">拍照</string>
+    <string name="lib_gallery">从手机相册选择</string>
+
+    <!-- common-->
+    <string name="lib_confirm">确定</string>
+    <string name="lib_commit">提交</string>
+    <string name="lib_cancel">取消</string>
+    <string name="lib_unknown">未知</string>
+
+    <string name="lib_commit_successfully">提交成功</string>
+    <string name="lib_system_error">系统异常</string>
+    <string name="lib_uncaught_exception_hint">系统未知异常</string>
+    <string name="lib_back_hint">再次按下返回键退出</string>
+
+    <string name="lib_hour">时</string>
+    <string name="lib_min">分</string>
+    <string name="lib_price_unit">元</string>
+    <string name="lib_currency_sybmol">￥</string>
+    <string name="lib_multiply_symbol">x</string>
+    <string name="lib_more">…</string>
+
+    <!-- utils-->
+    <string name="lib_toastIsPhoneNum">请输入正确的手机号码</string>
+
+    <!-- http-->
+    <string name="lib_http_error">连接服务器异常,请稍后再试</string>
+    <string name="lib_null">--</string>
+
+
+</resources>

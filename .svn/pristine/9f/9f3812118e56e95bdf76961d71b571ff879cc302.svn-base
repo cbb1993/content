@@ -1,0 +1,49 @@
+package com.huanhong.content.view.view.robot;
+
+import android.animation.Animator;
+import android.content.Context;
+import android.graphics.Color;
+
+import com.airbnb.lottie.LottieAnimationView;
+import com.airbnb.lottie.model.LottieComposition;
+
+/**
+ * Created by admin on 2017/5/13.
+ */
+
+public class RobotView extends LottieAnimationView {
+    public RobotView(Context context) {
+        super(context);
+        LottieComposition.fromAssetFileName(context, "LottieLogo1.json", new LottieComposition.OnCompositionLoadedListener() {
+            @Override
+            public void onCompositionLoaded(LottieComposition composition) {
+                setComposition(composition);
+                playAnimation();
+            }
+        });
+        loop(true);
+        setBackgroundColor(Color.BLUE);
+
+        addAnimatorListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
+    }
+}

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="TitleView">
+        <attr name="title_background" format="color" />
+        <attr name="title_text" format="string" />
+        <attr name="title_other_text" format="string" />
+        <attr name="title_other_text_color" format="color" />
+        <attr name="title_spare_visible" format="boolean" />
+        <attr name="title_back_visible" format="boolean" />
+        <attr name="title_back_src" format="reference"/>
+        <attr name="title_text_other_visible" format="boolean" />
+        <attr name="title_spare_src" format="reference" />
+        <attr name="title_line_visible" format="boolean"/>
+    </declare-styleable>
+    
+    <declare-styleable name="ResizeRadioButton">
+        <attr name="drawable_width" format="dimension"/>
+        <attr name="drawable_height" format="dimension"/>
+
+    </declare-styleable>
+
+</resources>

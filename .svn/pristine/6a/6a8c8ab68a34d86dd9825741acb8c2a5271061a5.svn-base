@@ -1,0 +1,127 @@
+package com.huanhong.content.presenter;
+
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Handler;
+
+import com.huanhong.content.model.DownLoadModel;
+import com.huanhong.content.model.info.ClientInfo;
+import com.huanhong.content.model.info.HistoryInfo;
+import com.huanhong.content.model.plan.Content;
+import com.huanhong.content.model.plan.PlanSwitch;
+import com.huanhong.content.model.plan.Schedule;
+import com.huanhong.content.model.plan.Plan;
+import com.huanhong.content.model.plan.SplitSchedule;
+import com.huanhong.content.model.sync.SyncHandler;
+import com.huanhong.content.model.sync.SyncManager;
+import com.huanhong.content.util.FileDownLoadUtil;
+import com.huanhong.content.util.FileJsonUtil;
+import com.huanhong.content.view.activity.MainActivity;
+import com.huanhong.content.view.i.UpdateView;
+import com.zyn.lib.presenter.BasePresenter;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+public class UpdatePresenter extends BasePresenter<UpdateView>
+{
+    public static final String TPYE = "type";
+    public static final String TYPE_PLAN = "plan";
+    public static final String TYPE_SYNC = "sync";
+    public static final String DATA = "data";
+
+    public UpdatePresenter(Context context, UpdateView view)
+    {
+        super(context, view);
+        EventBus.getDefault().register(this);
+        init();
+    }
+
+
+    private void init()
+    {
+        Intent intent = ((Activity) getContext()).getIntent();
+        if (intent != null) {
+            SyncManager.getInstance().sync(intent.getStringExtra(TPYE), intent.getStringExtra(DATA));
+        }
+
+        getView().startSyncAnim();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void handlerSyncEvent(SyncManager.SyncEvent syncEvent)
+    {
+        switch (syncEvent.getType())
+        {
+            case SyncManager.SyncEvent.TYPE_START:
+            {
+                getView().showMessage(syncEvent.getMsg());
+            }break;
+            case SyncManager.SyncEvent.TYPE_MSG:
+            {
+                getView().showMessage(syncEvent.getMsg());
+            }break;
+            case SyncManager.SyncEvent.TYPE_ERROR:
+            {
+                getView().showMessage(syncEvent.getMsg());
+            }break;
+            case SyncManager.SyncEvent.TYPE_SYNC_START:
+            {
+                getView().showMessage(syncEvent.getMsg());
+            }break;
+            case SyncManager.SyncEvent.TYPE_SYNC_FINISH:
+            {
+                getView().showMessage(syncEvent.getMsg());
+            }break;
+            case SyncManager.SyncEvent.TYPE_CHECK_START:
+            {
+                getView().showMessage(syncEvent.getMsg());
+            }break;
+            case SyncManager.SyncEvent.TYPE_CHECK_FINISH:
+            {
+                getView().showMessage(syncEvent.getMsg());
+            }break;
+            case SyncManager.SyncEvent.TYPE_FINISH:
+            {
+                getView().showMessage(syncEvent.getMsg());
+                toMainActivity();
+            }break;
+            case SyncManager.SyncEvent.TYPE_BUSING:
+            {
+                //ignore
+            }break;
+            default:
+            {
+                getView().showMessage("系统错误，请稍后重试");
+            }break;
+        }
+    }
+
+
+    private void toMainActivity()
+    {
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                getContext().startActivity(new Intent(getContext(), MainActivity.class));
+                ((Activity) getContext()).finish();
+            }
+        },0);
+    }
+
+    @Override
+    public void onDestory() {
+        EventBus.getDefault().unregister(this);
+        super.onDestory();
+    }
+}

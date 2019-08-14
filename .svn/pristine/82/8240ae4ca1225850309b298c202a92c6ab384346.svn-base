@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    >
+
+    <LinearLayout
+        android:gravity="center"
+        android:background="#4c98ea"
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+        <TextView
+            android:textSize="20sp"
+            android:layout_marginLeft="10dp"
+            android:text="连接状态："
+            android:textColor="@color/lib_white"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <LinearLayout
+            android:layout_margin="5dp"
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView
+                android:textSize="20sp"
+                android:id="@+id/activity_setting_tv_connectstatus"
+                android:text=""
+                android:textColor="@color/lib_orange"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <View
+                android:background="@color/lib_white"
+                android:layout_width="60dp"
+                android:layout_height="0.5dp"/>
+        </LinearLayout>
+
+
+        <TextView
+            android:textSize="20sp"
+            android:layout_marginLeft="30dp"
+            android:text="登录状态："
+            android:textColor="@color/lib_white"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <LinearLayout
+            android:layout_margin="5dp"
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView
+                android:textSize="20sp"
+                android:id="@+id/activity_setting_tv_status"
+                android:text=""
+                android:textColor="@color/lib_orange"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <View
+                android:background="@color/lib_white"
+                android:layout_width="60dp"
+                android:layout_height="0.5dp"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_marginLeft="40dp"
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:textSize="20sp"
+                android:id="@+id/activity_setting_tv_edit"
+                android:text="切换帐号"
+                android:textColor="@color/lib_orange"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <View
+                android:background="@color/lib_white"
+                android:layout_width="70dp"
+                android:layout_height="0.5dp"/>
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout
+        android:orientation="vertical"
+        android:background="#4088d2"
+        android:layout_weight="4"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+
+        <View
+            android:layout_weight="0.5"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:id="@+id/view" />
+
+        <RadioGroup
+            android:layout_weight="1"
+            android:id="@+id/activity_setting_rg"
+            android:background="@drawable/shap_bg_white_corner_width2"
+            android:layout_gravity="center_horizontal"
+            android:orientation="horizontal"
+            android:layout_width="504dp"
+            android:layout_height="0dp">
+
+            <RadioButton
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginLeft="2dp"
+                android:layout_gravity="center_vertical"
+                android:background="@drawable/selector_select_bg_left"
+                android:gravity="center"
+                android:button="@null"
+                android:id="@+id/activity_setting_rbtn_webpage"
+                android:text="展示网页"
+                android:textColor="@drawable/selector_select_tv_color"
+                android:layout_width="250dp"
+                android:layout_height="match_parent" />
+
+            <RadioButton
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:layout_gravity="center_vertical"
+                android:background="@drawable/selector_select_bg_right"
+                android:gravity="center"
+                android:button="@null"
+                android:id="@+id/activity_setting_rbtn_vedio"
+                android:text="展示视频"
+                android:textColor="@drawable/selector_select_tv_color"
+                android:layout_width="250dp"
+                android:layout_height="match_parent" />
+        </RadioGroup>
+        <View
+            android:layout_weight="0.5"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"/>
+        <!--展示网页 start-->
+        <LinearLayout
+            android:visibility="gone"
+            android:layout_weight="4"
+            android:id="@+id/activity_setting_ll_webpage"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="vertical">
+            <TextView
+                android:layout_weight="1"
+                android:paddingLeft="5dp"
+                android:layout_gravity="center_horizontal"
+                android:textColor="@color/cardview_dark_background"
+                android:gravity="center_vertical"
+                android:id="@+id/activity_setting_spinner"
+                android:background="@drawable/shap_bg_whiteall_corner"
+                android:layout_width = "600dp"
+                android:layout_height ="0dp"
+                />
+
+            <View
+                android:layout_weight="0.5"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:id="@+id/view2" />
+
+            <LinearLayout
+                android:layout_weight="1"
+                android:layout_gravity="center_horizontal"
+                android:orientation="horizontal"
+                android:layout_width="600dp"
+                android:layout_height="0dp"
+                android:focusable="true"
+                android:focusableInTouchMode="true">
+                <TextView
+                    android:textSize="20sp"
+                    android:gravity="center_vertical"
+                    android:textColor="@color/lib_white"
+                    android:text="静默等待时间："
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent" />
+                <EditText
+                    android:inputType="number"
+                    android:id="@+id/activity_setting_ev_keeptime"
+                    android:background="@drawable/shap_bg_whiteall_corner"
+                    android:text=""
+                    android:textColor="@color/cardview_dark_background"
+                    android:gravity="center"
+                    android:layout_width="80dp"
+                    android:layout_height="match_parent" />
+                <TextView
+                    android:textSize="20sp"
+                    android:layout_marginLeft="5dp"
+                    android:gravity="center_vertical"
+                    android:textColor="@color/lib_white"
+                    android:text="秒"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent" />
+            </LinearLayout>
+            <View
+                android:layout_weight="2.5"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"/>
+
+        </LinearLayout>
+        <!--展示网页 end-->
+
+
+
+        <!--展示视频 start-->
+        <LinearLayout
+            android:visibility="gone"
+            android:layout_weight="4"
+            android:id="@+id/activity_setting_ll_vedio"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="0dp">
+
+            <LinearLayout
+                android:layout_weight="1"
+                android:layout_marginLeft="248dp"
+                android:layout_gravity="center_horizontal"
+                android:orientation="horizontal"
+                android:layout_width="1000dp"
+                android:layout_height="0dp">
+                <TextView
+                    android:textSize="18sp"
+                    android:id="@+id/activity_setting_tv_choosefile"
+                    android:background="@mipmap/xuanzhewenjian"
+                    android:gravity="center"
+                    android:paddingRight="5dp"
+                    android:paddingLeft="5dp"
+                    android:textColor="#b8b8b8"
+                    android:text="选择视频文件"
+                    android:layout_width="200dp"
+                    android:layout_height="match_parent" />
+
+                <TextView
+                    android:textSize="18sp"
+                    android:singleLine="true"
+                    android:id="@+id/activity_setting_tv_choosefilepath"
+                    android:layout_marginLeft="5dp"
+                    android:gravity="center_vertical"
+                    android:paddingRight="5dp"
+                    android:paddingLeft="5dp"
+                    android:textColor="@color/lib_white"
+                    android:text=""
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+            </LinearLayout>
+        <View
+            android:layout_weight="4"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"/>
+
+        </LinearLayout>
+
+        <!--展示视频 end-->
+
+        <LinearLayout
+            android:gravity="center_horizontal"
+            android:layout_weight="1"
+            android:layout_gravity="center_horizontal"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="0dp">
+            <TextView
+                android:gravity="center"
+                android:id="@+id/activity_setting_tv_save"
+                android:background="@drawable/tubian"
+                android:layout_gravity="center_horizontal"
+                android:text="保存设置"
+                android:textColor="@color/lib_white"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" />
+            <TextView
+                android:layout_marginLeft="20dp"
+                android:gravity="center"
+                android:background="@drawable/tubian"
+                android:id="@+id/activity_setting_tv_plan"
+                android:text="按计划播放"
+                android:textColor="@color/lib_white"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" />
+        </LinearLayout>
+        <View
+            android:layout_weight="2.5"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"/>
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.huanhong.content.view.view.LockLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/lib_blue_4c98ea">
+
+    <RelativeLayout
+        android:id="@+id/layout_main_lock_ly_back"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/layout_main_lock_ly_front"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true">
+    </RelativeLayout>
+
+
+</com.huanhong.content.view.view.LockLayout>

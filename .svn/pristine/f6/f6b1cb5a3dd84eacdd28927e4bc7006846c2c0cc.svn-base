@@ -1,0 +1,359 @@
+package com.huanhong.content.model.plan;
+
+import android.support.annotation.NonNull;
+import android.util.Log;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.huanhong.content.model.plan.server.ServerAction;
+import com.huanhong.content.model.plan.server.ServerContent;
+import com.huanhong.content.model.plan.server.ServerPlanContent;
+import com.huanhong.content.model.plan.server.ServerSchedule;
+import com.huanhong.content.model.plan.server.ServerSplit;
+import com.huanhong.content.model.plan.server.ServerSplitSchedule;
+import com.huanhong.content.model.plan.server.ServerTask;
+import com.huanhong.content.model.split.Split;
+import com.huanhong.content.util.FileUtil;
+import com.zyn.lib.util.MediaUtils;
+import com.zyn.lib.util.ThreadUtils;
+import com.zyn.lib.util.Utils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created by tuka2401 on 2017/3/20.
+ */
+
+//负责plan的转换工作，从服务器提供的plan转换为我们支持格式的plan
+public class PlanSwitch {
+    public static PlanSwitchListener mPlanSwitchListener;
+
+    public static void switchPlanContent(final JsonObject jPlanContent) {
+
+        ThreadUtils.runOnWorkThread(new Runnable() {
+            @Override
+            public void run() {
+                if (jPlanContent != null) {
+                    final PlanContent planContent = new PlanContent();
+                    try {
+                        ServerPlanContent serverPlanContent = new Gson().fromJson(jPlanContent, ServerPlanContent.class);
+                        planContent.setSplit(switchSplit(serverPlanContent.getSplit()));
+                        planContent.setSplitSchedule(switchSplitSchedule(serverPlanContent.getSplitTasks()));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        if (mPlanSwitchListener != null) {
+                            ThreadUtils.runOnMainThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mPlanSwitchListener.onSwitchFinished(planContent);
+                                }
+                            }, 0);
+                        }
+                    }
+                }
+            }
+        }, 0);
+    }
+
+    @NonNull
+    private static List<Split> switchSplit(List<ServerSplit> serverSplitList) {
+        List<Split> splitList = new ArrayList<>();
+        //转换split
+        if (serverSplitList != null) {
+            for (ServerSplit serverSplit : serverSplitList) {
+                Split split = new Split();
+                split.setId(serverSplit.getId());
+                split.setX(serverSplit.getX());
+                split.setY(serverSplit.getY());
+                split.setWidth(serverSplit.getWidth());
+                split.setHeight(serverSplit.getHeight());
+                split.setAction(switchAction(serverSplit.getAction()));
+                splitList.add(split);
+            }
+        }
+        return splitList;
+    }
+
+
+    @NonNull
+    private static List<Action> switchAction(List<ServerAction> serverActionList) {
+        List<Action> actionList = new ArrayList<>();
+        if (serverActionList != null) {
+            for (ServerAction serverAction : serverActionList) {
+                Action action = new Action();
+                action.setId(serverAction.getId());
+                action.setResultContent(serverAction.getResultContent());
+                action.setActionCode(serverAction.getActionCode());
+                action.setActionName(serverAction.getActionName());
+                action.setObjType(serverAction.getObjType());
+                action.setResultType(serverAction.getResultType());
+                action.setWaitTime(serverAction.getWaitTime());
+                action.setWaitUnit(serverAction.getWaitUnit());
+                actionList.add(action);
+            }
+        }
+        return actionList;
+    }
+
+    @NonNull
+    private static List<SplitSchedule> switchSplitSchedule(final List<ServerSplitSchedule> serverSplitScheduleList) {
+        List<SplitSchedule> splitScheduleList = new ArrayList<>();
+        if (serverSplitScheduleList != null) {
+            for (int i = 0; i < serverSplitScheduleList.size(); i++) {
+                if (mPlanSwitchListener != null) {
+                    final int finalI = i;
+                    ThreadUtils.runOnMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mPlanSwitchListener.onSwitchSplitSchedule(serverSplitScheduleList.size(), finalI);
+                        }
+                    }, 0);
+                }
+                ServerSplitSchedule serverSplitSchedule = serverSplitScheduleList.get(i);
+                SplitSchedule splitSchedule = new SplitSchedule();
+                splitSchedule.setId(serverSplitSchedule.getId());
+                splitSchedule.setSchedule(switchTaskToSchedule(serverSplitSchedule.getTasks()));
+                splitScheduleList.add(splitSchedule);
+            }
+        }
+        return splitScheduleList;
+    }
+
+    @NonNull
+    private static List<Schedule> switchTaskToSchedule(List<ServerTask> serverTaskList) {
+        List<Schedule> scheduleList = new ArrayList<>();
+        if (serverTaskList != null) {
+            ServerTask currServerTask = null;
+
+            //查找特殊日期
+            for (ServerTask serverTask : serverTaskList) {
+                if (ServerTask.TASK_TYPE_DATE.equals(serverTask.getType())) {
+                    try {
+                        if (serverTask.getStartTime() >= Utils.getTimestamp(Utils.getCurrDate())
+                                && serverTask.getStartTime() < Utils.getNextDayTimestamp()) {
+                            currServerTask = serverTask;
+                            break;
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            //查找星期几
+            if (currServerTask == null) {
+                for (ServerTask serverTask : serverTaskList) {
+                    if (ServerTask.TASK_TYPE_WEEKLY.equals(serverTask.getType())) {
+                        if ((Utils.getCurrWeek() + "").equals(serverTask.getTypeRelated())) {
+                            currServerTask = serverTask;
+                            break;
+                        }
+                    }
+
+                }
+            }
+
+            //查找每天
+            if (currServerTask == null) {
+                for (ServerTask serverTask : serverTaskList) {
+                    if (ServerTask.TASK_TYPE_DAILY.equals(serverTask.getType())) {
+                        currServerTask = serverTask;
+                        break;
+                    }
+                }
+            }
+
+            //转换并添加schedule
+            if (currServerTask != null) {
+                scheduleList.addAll(switchSchedule(currServerTask.getSchedule()));
+            }
+        }
+        return scheduleList;
+    }
+
+    @NonNull
+    private static List<Schedule> switchSchedule(List<ServerSchedule> serverScheduleList) {
+        int taskCount = 0;
+        List<Schedule> scheduleList = new ArrayList<>();
+        if (serverScheduleList != null) {
+            for (ServerSchedule group : serverScheduleList) {
+                try {
+                    //解析group
+                    //组开始时间
+                    long groupStartTime = Utils.getTimestamp(Utils.getCurrDate(), group.getStart());
+                    //组结束时间
+                    long groupEndTime = Utils.getTimestamp(Utils.getCurrDate(), group.getEnd());
+                    if (groupEndTime <= groupStartTime) {
+                        continue;
+                    }
+                    //每Count间隔时间 小于等于0就continue
+                    long groupCountTime = group.getPlayTime();
+                    if (groupCountTime <= 0) {
+                        continue;
+                    }
+
+                    //组循环次数 可能会大于组需要循环的次数
+                    int groupCount = group.getCount();
+                    if (groupCount <= 0) {
+                        groupCount = (int) ((groupEndTime - groupStartTime) / groupCountTime + 1);
+                    }
+
+                    for (int i = 0; i < groupCount; i++) {
+                        //Count开始时间 超过组结束时间直接结束遍历
+                        long groupCountStartTime = groupStartTime + i * groupCountTime;
+                        if (groupCountStartTime >= groupEndTime) {
+                            break;
+                        }
+                        //Count结束时间 不能超过组结束时间
+                        long groupCountEndTime = groupCountStartTime + groupCountTime;
+                        if (groupCountEndTime > groupEndTime) {
+                            groupCountEndTime = groupEndTime;
+                        }
+                        //若count开始时间大于等于结束时间continue
+                        if (groupCountStartTime >= groupCountEndTime) {
+                            continue;
+                        }
+
+                        //遍历内容列表
+                        List<ServerContent> serverContentList = group.getContentList();
+                        if (serverContentList != null) {
+                            final int fileCount = serverContentList.size();
+                            for (int j = 0; j < fileCount; j++) {
+                                if (mPlanSwitchListener != null) {
+                                    final int finalI = i;
+                                    final int finalGroupCount = groupCount;
+                                    ThreadUtils.runOnMainThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            mPlanSwitchListener.onSwitchSchedule(finalGroupCount * fileCount, finalI);
+                                        }
+                                    }, 0);
+                                }
+
+                                ServerContent serverContent = serverContentList.get(j);
+
+                                //每个文件一个schedule
+                                Schedule schedule = new Schedule();
+                                schedule.setFileType(serverContent.getType());
+                                List<Content> contentList = new ArrayList<>();
+                                Content content = switchContent(serverContent);
+                                if (content != null) {
+                                    contentList.add(content);
+                                }
+                                schedule.setContentList(contentList);
+
+                                //计算每一个文件每一次播放的开始时间 结束时间
+                                schedule.setStartTime(groupCountStartTime);
+                                int count = serverContent.getCount();
+                                if (count < 1) {
+                                    count = 1;
+                                }
+                                //计算结束时间
+                                long endTime = groupCountStartTime + getPlayTime(content) * count;
+                                if (endTime > groupCountEndTime) {
+                                    endTime = groupCountEndTime;
+                                }
+                                schedule.setEndTime(endTime);
+                                groupCountStartTime = endTime;
+
+                                scheduleList.add(schedule);
+                                taskCount++;
+                                Log.e("PlanSwitch", "创建计划:" + taskCount + " 开始时间:" + Utils.getStrTimestamp(schedule.getStartTime()) + " 结束时间:" + Utils.getStrTimestamp(schedule.getEndTime()));
+                            }
+                        }
+
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return scheduleList;
+    }
+
+
+    private static Content switchContent(ServerContent serverContent) {
+        if (serverContent != null) {
+            Content content = new Content();
+            content.setUrl(serverContent.getUrl());
+            content.setType(serverContent.getType());
+            content.setShowPath(serverContent.getShowPath());
+            content.setAction(switchAction(serverContent.getActionList()));
+            content.setFileFormat(serverContent.getFileFormat());
+            content.setFileName(serverContent.getFileName());
+            content.setFileMd5(serverContent.getFileMd5());
+            content.setFileMemory(serverContent.getFileMemory());
+            content.setRank(serverContent.getRank());
+            content.setPlayTime(serverContent.getPlayTime());
+            return content;
+        }
+        return null;
+    }
+
+    @NonNull
+    private static List<Content> switchContent(List<ServerContent> serverContentList) {
+        List<Content> contentList = new ArrayList<>();
+        if (serverContentList != null) {
+            for (ServerContent serverContent : serverContentList) {
+                Content content = switchContent(serverContent);
+                if (content != null) {
+                    contentList.add(content);
+                }
+            }
+        }
+        return contentList;
+    }
+
+    @NonNull
+    public static List<Content> getContentList(JsonObject jPlanContent) {
+        List<Content> list = new ArrayList<>();
+        if (jPlanContent != null) {
+            ServerPlanContent serverPlanContent = new Gson().fromJson(jPlanContent, ServerPlanContent.class);
+            List<ServerSplitSchedule> serverSplitScheduleList = serverPlanContent.getSplitTasks();
+            if (serverSplitScheduleList != null) {
+                for (ServerSplitSchedule serverSplitSchedule : serverSplitScheduleList) {
+                    List<ServerTask> serverTaskList = serverSplitSchedule.getTasks();
+                    if (serverTaskList != null) {
+                        for (ServerTask serverTask : serverTaskList) {
+                            List<ServerSchedule> serverScheduleList = serverTask.getSchedule();
+                            if (serverScheduleList != null) {
+                                for (ServerSchedule serverSchedule : serverScheduleList) {
+                                    List<Content> contentList = switchContent(serverSchedule.getContentList());
+                                    list.addAll(contentList);
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+        return list;
+    }
+
+    private static long getPlayTime(Content content) {
+        if (content != null) {
+            return content.getPlayTime() > 0 ? content.getPlayTime() : MediaUtils.getMediaDuration(FileUtil.getPathByShowPath(content
+                    .getShowPath()));
+        }
+        return 0;
+    }
+
+    public static PlanSwitchListener getPlanSwitchListener() {
+        return mPlanSwitchListener;
+    }
+
+    public static void setPlanSwitchListener(PlanSwitchListener planSwitchListener) {
+        mPlanSwitchListener = planSwitchListener;
+    }
+
+    public interface PlanSwitchListener {
+        void onSwitchSplitSchedule(int total, int curr);
+
+        void onSwitchSchedule(int total, int curr);
+
+        void onSwitchFinished(PlanContent planContent);
+    }
+}

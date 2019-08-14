@@ -1,0 +1,24 @@
+package com.huanhong.content.app;
+
+
+import com.huanhong.content.model.api.ApiHandler;
+import com.iflytek.cloud.SpeechUtility;
+import com.zyn.lib.app.BaseApplication;
+
+public class MyApplicaiton extends BaseApplication
+{
+
+    @Override
+    public void onCreate() {
+        SpeechUtility.createUtility(this, "appid=" + "58dc81f8");
+        super.onCreate();
+    }
+
+    @Override
+    protected void initApplication()
+    {
+        super.initApplication();
+        ApiHandler
+                .getInstance().init();
+    }
+}

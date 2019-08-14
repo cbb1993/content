@@ -1,0 +1,50 @@
+package com.huanhong.content.model.plan;
+
+import com.google.gson.annotations.SerializedName;
+
+import java.io.Serializable;
+import java.util.List;
+
+
+public class TotalSchedule implements Serializable
+{
+    public static final String MODE_DAILY = "1";
+    public static final String MODE_WEEKLY = "2";
+
+    @SerializedName("windowingId")
+    private String id;
+
+    //执行模式1按天2按周
+    private String executionMode = "1";
+    private List<Schedule> schedule;
+
+    public String getId()
+    {
+        return id;
+    }
+
+    public void setId(String id)
+    {
+        this.id = id;
+    }
+
+    public List<Schedule> getSchedule()
+    {
+        return schedule;
+    }
+
+    public void setSchedule(List<Schedule> schedule)
+    {
+        this.schedule = schedule;
+    }
+
+    public String getExecutionMode()
+    {
+        return executionMode;
+    }
+
+    public void setExecutionMode(String executionMode)
+    {
+        this.executionMode = executionMode;
+    }
+}

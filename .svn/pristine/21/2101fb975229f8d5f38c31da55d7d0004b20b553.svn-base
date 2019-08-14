@@ -1,0 +1,45 @@
+package com.huanhong.content.model.info;
+
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.huanhong.content.model.api.ApiConstans;
+import com.huanhong.content.model.plan.TotalPlan;
+import com.zyn.lib.util.SharedPreferencesUtils;
+import com.zyn.lib.util.Utils;
+
+import java.lang.reflect.Type;
+import java.util.List;
+
+public class HistoryInfo
+{
+    private static Gson mGson = new Gson();
+
+    public static void savePlanList(List<TotalPlan> plan)
+    {
+        try
+        {
+            SharedPreferencesUtils.addData(ApiConstans.PLAN_HISTORY, mGson.toJson(plan));
+        }catch (Exception ignore)
+        {
+
+        }
+    }
+
+    public static List<TotalPlan> getPlanList()
+    {
+        try
+        {
+            Type type = new TypeToken<List<TotalPlan>>(){}.getType();
+            return mGson.fromJson(SharedPreferencesUtils.readData(ApiConstans.PLAN_HISTORY),type);
+        }catch (Exception ignore)
+        {
+           return null;
+        }
+    }
+
+    public static boolean hasPlan()
+    {
+        return !Utils.isEmptyList(getPlanList());
+    }
+}

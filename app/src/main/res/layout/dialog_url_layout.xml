@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="320dp"
+        android:layout_height="200dp">
+   <TextView
+       android:layout_marginBottom="20dp"
+       android:layout_marginTop="10dp"
+       android:gravity="center_horizontal"
+       android:text="请输入URL"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content" />
+
+    <EditText
+        android:id="@+id/ev_url"
+        android:layout_marginRight="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginBottom="10dp"/>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+       <TextView
+           android:id="@+id/tv_cancle"
+           android:gravity="center"
+           android:text="取消"
+           android:layout_weight="1"
+           android:layout_width="0dp"
+           android:layout_height="match_parent" />
+        <TextView
+            android:textColor="@color/lib_orange"
+            android:id="@+id/tv_confirm"
+            android:gravity="center"
+            android:text="确认"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent" />
+    </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

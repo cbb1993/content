@@ -1,0 +1,572 @@
+package com.huanhong.content.presenter;
+
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.os.Environment;
+import android.support.annotation.NonNull;
+import android.text.TextUtils;
+import android.util.Log;
+
+import com.huanhong.content.R;
+import com.huanhong.content.model.PlayMsgModel;
+import com.huanhong.content.model.api.ApiMethod;
+import com.huanhong.content.model.api.ApiProtocol;
+import com.huanhong.content.model.info.ClientInfo;
+import com.huanhong.content.model.info.HistoryInfo;
+import com.huanhong.content.model.plan.Action;
+import com.huanhong.content.model.plan.Content;
+import com.huanhong.content.model.plan.Plan;
+import com.huanhong.content.model.plan.Schedule;
+import com.huanhong.content.model.plan.TotalPlan;
+import com.huanhong.content.model.plan.TotalPlanManager;
+import com.huanhong.content.model.plan.TotalSchedule;
+import com.huanhong.content.model.plan.TotalScheduleManager;
+import com.huanhong.content.model.split.Split;
+import com.huanhong.content.model.split.SplitItem;
+import com.huanhong.content.model.split.SplitLayout;
+import com.huanhong.content.model.split.adaptive.AdaptiveSplitItem;
+import com.huanhong.content.view.i.MainView;
+import com.zyn.lib.presenter.BasePresenter;
+import com.zyn.lib.util.FileUtils;
+import com.zyn.lib.util.HttpUtils;
+import com.zyn.lib.util.ThreadUtils;
+import com.zyn.lib.util.Utils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+
+public class MainPresenter extends BasePresenter<MainView> implements TotalPlanManager.TotalPlanListener
+{
+    private SplitLayout mSplitLayout;
+    private TotalPlanManager mTotalPlanManager;
+    private Map<String, TotalScheduleManager> mScheduleManagerMap = new HashMap<>();
+
+    public MainPresenter(Context context, MainView view)
+    {
+        super(context, view);
+        init();
+        ClientInfo
+                .getInstance()
+                .setMainPresenter(this);
+    }
+
+    private void init()
+    {
+        //lock锁死屏幕
+        getView().lock();
+
+        mSplitLayout = new SplitLayout(getContext());
+        mSplitLayout.setBackgroundResource(R.color.lib_black);
+
+        //计划管理者
+        mTotalPlanManager = new TotalPlanManager(this);
+
+        //检查当前设备的设置，判断按计划或本地播放
+        checkConfig();
+//
+    }
+
+    private void deinit()
+    {
+        stopPlan();
+        mTotalPlanManager.stop();
+        getView().unlock();
+    }
+
+    private void checkConfig()
+    {
+        PlayMsgModel playMsgModel = PlayMsgModel.getPlayMsgInfo();
+
+        if (playMsgModel == null)
+        {
+            onPlan();
+        } else
+        {
+            if (playMsgModel
+                    .getType()
+                    .equals("0"))
+            {
+                onPlan();
+            } else
+            {
+                onLocal(playMsgModel);
+            }
+        }
+    }
+
+    private void onPlan()
+    {
+        if (HistoryInfo.hasPlan())
+        {
+            getView().show(mSplitLayout);
+            play(HistoryInfo.getPlanList());
+        } else
+        {
+            getView().show(null);
+        }
+
+//        testPlan();
+    }
+
+    private void onLocal(@NonNull PlayMsgModel msgModel)
+    {
+        //web
+        if (msgModel
+                .getType()
+                .equals("1"))
+        {
+            String url = msgModel.getWebUrl();
+            if (TextUtils.isEmpty(url))
+            {
+                getView().show(null);
+            } else
+            {
+                List<String> list = new ArrayList<>();
+                list.add(HttpUtils.addHttpScheme(url));
+                play(getFullScreenPlanByType(Schedule.TYPE_H5, list));
+            }
+        }
+        //video
+        else if (msgModel
+                .getType()
+                .equals("2"))
+        {
+            List<String> pathList = msgModel.getPlayList();
+            if (Utils.isEmptyList(pathList))
+            {
+                getView().show(null);
+            } else
+            {
+                play(getFullScreenPlanByType(Schedule.TYPE_VIDEO, pathList));
+            }
+        }
+    }
+
+    private List<TotalPlan> getFullScreenPlanByType(String type, List<String> list)
+    {
+        String id = "0";
+
+        Split split = new Split();
+        split.setId(id);
+        split.setX(0);
+        split.setY(0);
+        split.setWidth(1);
+        split.setHeight(1);
+        List<Split> splitList = new ArrayList<>();
+        splitList.add(split);
+
+        List<Content> contentList = new ArrayList<>();
+        for (String s : list)
+        {
+            Content content = new Content();
+            content.setLocal(true);
+            content.setUrl(s);
+            content.setShowPath(s);
+            content.setType(type);
+            contentList.add(content);
+        }
+
+        //schedule
+        Schedule schedule = new Schedule();
+        schedule.setFileType(type);
+        schedule.setContentList(contentList);
+        schedule.setNeedSeekTo(false);
+        schedule.setStart("00:00:00");
+        schedule.setEnd("23:59:59");
+        List<Schedule> scheduleList = new ArrayList<>();
+        scheduleList.add(schedule);
+
+        //totalSchedule对应不同分屏
+        TotalSchedule totalSchedule = new TotalSchedule();
+        totalSchedule.setId(id);
+        totalSchedule.setExecutionMode(TotalSchedule.MODE_DAILY);
+        totalSchedule.setSchedule(scheduleList);
+        List<TotalSchedule> totalScheduleList = new ArrayList<>();
+        totalScheduleList.add(totalSchedule);
+
+        //开始plan
+        Plan plan = new Plan();
+        plan.setSplit(splitList);
+        plan.setTotalSchedule(totalScheduleList);
+
+        TotalPlan totalPlan = new TotalPlan();
+        totalPlan.setPlanName("前端播放");
+        totalPlan.setPlan(plan);
+        totalPlan.setStartTime(System.currentTimeMillis());
+        totalPlan.setEndTime(Long.MAX_VALUE);
+
+        List<TotalPlan> totalPlanList = new ArrayList<>();
+        totalPlanList.add(totalPlan);
+        return totalPlanList;
+    }
+
+    private void testPlan()
+    {
+        List<TotalSchedule> totalScheduleList = new ArrayList<>();
+        List<Split> splitList = new ArrayList<>();
+
+        List<Action> list = new ArrayList<>();
+        Action action = new Action();
+        action.setWaitTime(10 * 1000);
+        action.setResultContent("http://www.baidu.com");
+        list.add(action);
+
+        int total = 4;
+        for (int i = 0; i < total; i++)
+        {
+            Split split = new Split();
+            split.setId(i + "");
+            split.setHeight(0.4f);
+            split.setWidth(0.4f);
+            switch (i)
+            {
+                case 0:
+                {
+                    split.setX(0.05f);
+                    split.setY(0.05f);
+                    split.setAction(list);
+                }
+                break;
+                case 1:
+                {
+                    split.setX(0.5f + 0.05f);
+                    split.setY(0 + 0.05f);
+                }
+                break;
+                case 2:
+                {
+                    split.setX(0 + 0.05f);
+                    split.setY(0.5f + 0.05f);
+                    split.setAction(list);
+                }
+                break;
+                case 3:
+                {
+                    split.setX(0.5f + 0.05f);
+                    split.setY(0.5f + 0.05f);
+                    split.setAction(list);
+                }
+                break;
+            }
+            splitList.add(split);
+
+            TotalSchedule totalSchedule = new TotalSchedule();
+            totalSchedule.setExecutionMode(TotalSchedule.MODE_DAILY);
+            totalSchedule.setId(i + "");
+
+            List<Schedule> scheduleList = new ArrayList<>();
+            long currtime = System.currentTimeMillis();
+
+            long interval = 100 * 1000;
+            if (i == 0)
+            {
+                //第一个视频
+                Schedule schedule1 = getScheduleVideo();
+                schedule1.setStart(Utils.getStrTime(currtime));
+                schedule1.setEnd(Utils.getStrTime(currtime + interval));
+                scheduleList.add(schedule1);
+
+                Schedule schedule2 = getScheduleVideo();
+                schedule2.setStart(schedule1.getEnd());
+                schedule2.setEnd("23:59:59");
+                scheduleList.add(schedule2);
+            }
+
+            if (i == 1)
+            {
+                //第一个视频
+                Schedule schedule1 = getScheduleH5();
+                schedule1.setStart(Utils.getStrTime(currtime));
+                schedule1.setEnd("23:59:59");
+                scheduleList.add(schedule1);
+            }
+
+            if (i == 2)
+            {
+                //第一个视频
+                Schedule schedule1 = getSchduleImages();
+                schedule1.setStart(Utils.getStrTime(currtime));
+                schedule1.setEnd("23:59:59");
+                scheduleList.add(schedule1);
+
+            }
+
+            if (i == 3)
+            {
+                //第一个视频
+                Schedule schedule1 = getScheduleVideo();
+                schedule1.setStart(Utils.getStrTime(currtime));
+                schedule1.setEnd(Utils.getStrTime(currtime + interval));
+                scheduleList.add(schedule1);
+
+                Schedule schedule2 = getScheduleVideo();
+                schedule2.setStart(Utils.getStrTime(schedule1.getEndTime(totalSchedule.getExecutionMode())));
+                schedule2.setEnd("23:59:59");
+                scheduleList.add(schedule2);
+            }
+
+            totalSchedule.setSchedule(scheduleList);
+            totalScheduleList.add(totalSchedule);
+        }
+
+        Plan plan = new Plan();
+        plan.setTotalSchedule(totalScheduleList);
+        plan.setSplit(splitList);
+
+        final ApiProtocol apiProtocol = new ApiProtocol();
+        apiProtocol.setId(ApiProtocol.getAutoID());
+        apiProtocol.setType(ApiProtocol.TYPE_REQUEST);
+        apiProtocol.setMethod(ApiMethod.METHOD_PLAN);
+        apiProtocol.setData(plan);
+
+        TotalPlan totalPlan = new TotalPlan();
+        totalPlan.setStartTime(System.currentTimeMillis());
+        totalPlan.setEndTime(totalPlan.getStartTime() + 100 * 1000);
+        totalPlan.setPlan(plan);
+        totalPlan.setPlanName("哈哈哈");
+
+        List<TotalPlan> totalPlanList = new ArrayList<>();
+        totalPlanList.add(totalPlan);
+        play(totalPlanList);
+    }
+
+    private void play(List<TotalPlan> list)
+    {
+        mTotalPlanManager.setTotalPlanList(list);
+        mTotalPlanManager.start();
+    }
+
+
+    private Schedule getScheduleVideo()
+    {
+        List<Content> list = new ArrayList<>();
+        Content content = new Content();
+        content.setUrl(Environment
+                .getExternalStorageDirectory()
+                .getPath() + "/Movies/test.mp4");
+        list.add(content);
+
+        Schedule schedule = new Schedule();
+        schedule.setFileType(Schedule.TYPE_VIDEO);
+        schedule.setContentList(list);
+        return schedule;
+    }
+
+    @NonNull
+    private Schedule getScheduleH5()
+    {
+        List<Content> list = new ArrayList<>();
+        Content content = new Content();
+        content.setUrl("http://www.baidu.com");
+        list.add(content);
+
+        Schedule schedule = new Schedule();
+        schedule.setFileType(Schedule.TYPE_H5);
+        schedule.setContentList(list);
+        return schedule;
+    }
+
+    private Schedule getSchduleImages()
+    {
+        List<Content> list = new ArrayList<>();
+        Content content = new Content();
+        content.setUrl("http://a4.att.hudong.com/38/47/19300001391844134804474917734_950.png");
+        list.add(content);
+        Content content1 = new Content();
+        content1.setUrl("http://a.hiphotos.baidu.com/zhidao/pic/item/f9dcd100baa1cd11aa2ca018bf12c8fcc3ce2d74.jpg");
+        list.add(content1);
+
+        Schedule schedule = new Schedule();
+        schedule.setFileType(Schedule.TYPE_IMAGE);
+        schedule.setContentList(list);
+        return schedule;
+    }
+
+    @Override
+    public void startPlan(Plan plan)
+    {
+        if (plan == null)
+        {
+            getView().show(null);
+            return;
+        }
+
+        //先暂停之前的plan
+        stopPlan();
+
+        List<Split> splitList = plan.getSplit();
+        List<TotalSchedule> totalScheduleList = plan.getTotalSchedule();
+        if (splitList == null || totalScheduleList == null)
+        {
+            getView().show(null);
+            return;
+        }
+
+        List<SplitItem> splitItemList = new ArrayList<>();
+        for (int i = 0; i < splitList.size(); i++)
+        {
+            //分屏
+            Split split = splitList.get(i);
+            if (split == null)
+            {
+                continue;
+            }
+            AdaptiveSplitItem splitItem = new AdaptiveSplitItem(getContext(), split);
+            splitItem.setActionList(split.getAction());
+            splitItemList.add(splitItem);
+
+            //寻找对应的total schedule
+            TotalSchedule totalSchedule = null;
+            for (TotalSchedule t : totalScheduleList)
+            {
+                if (t != null
+                        && split.getId() != null
+                        && split
+                        .getId()
+                        .equals(t.getId()))
+                {
+                    totalSchedule = t;
+                    break;
+                }
+            }
+
+            //创建schedule manager管理total schedule
+            if (totalSchedule != null)
+            {
+                TotalScheduleManager scheduleManager = new TotalScheduleManager(splitItem);
+                scheduleManager.setTotalSchedule(totalSchedule);
+                mScheduleManagerMap.put(split.getId(), scheduleManager);
+            }
+        }
+
+        mSplitLayout.split(splitItemList);
+        getView().show(mSplitLayout);
+
+        //开启所有schedule manager
+        for (TotalScheduleManager scheduleManager : mScheduleManagerMap.values())
+        {
+            scheduleManager.start();
+        }
+    }
+
+
+    @Override
+    public void stopPlan()
+    {
+        if (mScheduleManagerMap != null)
+        {
+            for (TotalScheduleManager scheduleManager : mScheduleManagerMap.values())
+            {
+                if (scheduleManager != null)
+                {
+                    scheduleManager.stop();
+                }
+            }
+            mScheduleManagerMap.clear();
+        }
+
+        if (mSplitLayout != null)
+        {
+            mSplitLayout.reset();
+        }
+
+        getView().show(null);
+    }
+
+    public Map<String,Object> getCurrContent()
+    {
+        Map<String,Object> map = new HashMap<>();
+        if (mSplitLayout != null)
+        {
+            List<SplitItem> splitItemList = mSplitLayout.getSplitItemList();
+            if (splitItemList != null)
+            {
+                for (SplitItem splitItem : splitItemList)
+                {
+                    Split split = splitItem.getSplit();
+                    if (split != null)
+                    {
+                        map.put(split.getId(),splitItem.getCurrContent());
+                    }
+                }
+            }
+        }
+        return map;
+    }
+
+    public void getShot(final String id, final ShotListener listener)
+    {
+        ThreadUtils.runOnWorkThread(new Runnable()
+        {
+            String path;
+
+            @Override
+            public void run()
+            {
+                if (mSplitLayout != null)
+                {
+                    if(id.equals("0"))
+                    {
+                        Bitmap bitmap =  mSplitLayout.getViewShot();
+                        if (bitmap != null)
+                        {
+                            String path = FileUtils.getDiskCacheDirPath(getContext()) + "/cache.jpg";
+                            Log.e(getClass().getSimpleName(),"截屏保存成功");
+                            FileUtils.saveBitmapToFile(bitmap, path);
+                            this.path = path;
+                        }
+                    }
+                    else
+                    {
+                        List<SplitItem> splitItemList = mSplitLayout.getSplitItemList();
+                        if (splitItemList != null)
+                        {
+                            for (SplitItem splitItem : splitItemList)
+                            {
+                                Split split = splitItem.getSplit();
+                                if (split != null)
+                                {
+                                    if (split.getId() != null && split
+                                            .getId()
+                                            .equals(id))
+                                    {
+                                        Bitmap bitmap = splitItem.getBitmapShot();
+                                        if (bitmap != null)
+                                        {
+                                            String path = FileUtils.getDiskCacheDirPath(getContext()) + "/cache.jpg";
+                                            Log.e(getClass().getSimpleName(),"截屏保存成功");
+                                            FileUtils.saveBitmapToFile(bitmap, path);
+                                            this.path = path;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (listener != null)
+                {
+                    listener.onFinish(path);
+                }
+            }
+        }, 0);
+    }
+
+    @Override
+    public void onDestory()
+    {
+        super.onDestory();
+        deinit();
+        ClientInfo
+                .getInstance()
+                .setMainPresenter(null);
+    }
+
+    public interface ShotListener
+    {
+        void onFinish(String path);
+    }
+}

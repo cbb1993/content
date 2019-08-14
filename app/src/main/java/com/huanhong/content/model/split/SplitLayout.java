@@ -1,0 +1,196 @@
+package com.huanhong.content.model.split;
+
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Rect;
+import android.util.AttributeSet;
+import android.util.Log;
+import android.view.View;
+import android.widget.FrameLayout;
+
+import com.huanhong.content.R;
+import com.huanhong.content.model.plan.server.ServerSplit;
+import com.zyn.lib.util.ViewUtils;
+
+import java.util.List;
+
+public class SplitLayout extends FrameLayout
+{
+    boolean isFirst = true;
+    private List<SplitItem> mSplitItemList;
+    private LayoutParams mEmptyLayoutParams;
+
+    public SplitLayout(Context context)
+    {
+        this(context, null);
+    }
+
+    public SplitLayout(Context context, AttributeSet attrs)
+    {
+        this(context, attrs, 0);
+    }
+
+    public SplitLayout(Context context, AttributeSet attrs, int defStyleAttr)
+    {
+        super(context, attrs, defStyleAttr);
+        setBackgroundResource(R.color.lib_black);
+        mEmptyLayoutParams = new LayoutParams(0, 0);
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh)
+    {
+        super.onSizeChanged(w, h, oldw, oldh);
+        if (w > 0 && h > 0 && isFirst)
+        {
+            isFirst = false;
+
+            //适配7.0
+            post(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    removeAllViews();
+                    split();
+                }
+            });
+        }
+    }
+
+    public void split(List<SplitItem> splitItems)
+    {
+        //先重置
+        reset();
+
+        mSplitItemList = splitItems;
+        if (getWidth() > 0 && getHeight() > 0)
+        {
+            split();
+        }
+    }
+
+    public List<SplitItem> getSplitItemList()
+    {
+        return mSplitItemList;
+    }
+
+    private void split()
+    {
+        if (mSplitItemList == null)
+        {
+            return;
+        }
+
+        //分别添加各分屏部件
+        for (SplitItem splitItem : mSplitItemList)
+        {
+            addSplitView(splitItem);
+        }
+    }
+
+    private void addSplitView(SplitItem splitItem)
+    {
+        if (splitItem == null)
+        {
+            return;
+        }
+
+        //创建参数
+        FrameLayout.LayoutParams layoutParams = createLayoutParams(splitItem);
+
+        //获得view
+        View view = splitItem.getView();
+        if (view == null)
+        {
+            Log.e(getClass().getSimpleName(), "split view is null");
+            return;
+        }
+
+        //添加view
+        view.setLayoutParams(layoutParams);
+        addView(view);
+    }
+
+    public LayoutParams createLayoutParams(SplitItem splitItem)
+    {
+        if (splitItem == null)
+        {
+            return mEmptyLayoutParams;
+        }
+
+        int x = (int) (getWidth() * splitItem
+                .getSplit()
+                .getX());
+        int y = (int) (getHeight() * splitItem
+                .getSplit()
+                .getY());
+        int width = (int) (getWidth() * splitItem
+                .getSplit()
+                .getWidth());
+        int height = (int) (getHeight() * splitItem
+                .getSplit()
+                .getHeight());
+
+        LayoutParams params = new LayoutParams(width, height);
+        params.leftMargin = x;
+        params.topMargin = y;
+        return params;
+    }
+
+    public Bitmap getViewShot()
+    {
+        Bitmap bg = ViewUtils.getViewShot(this);
+        if (bg == null)
+        {
+            return null;
+        }
+
+        Canvas canvas = new Canvas(bg);
+        for (SplitItem splitItem : getSplitItemList())
+        {
+            if (splitItem == null || splitItem.getSplit() == null)
+            {
+                continue;
+            }
+            Bitmap bitmap = splitItem.getBitmapShot();
+            if (bitmap != null)
+            {
+                ServerSplit split = splitItem.getSplit();
+                int left = (int) (split.getX() * bg.getWidth());
+                int top = (int) (split.getY() * bg.getHeight());
+                int right = (int) ((split.getX() + split.getWidth()) * bg.getWidth());
+                int bottom = (int) ((split.getY() + split.getHeight()) * bg.getHeight());
+                Rect rect = new Rect(left, top, right, bottom);
+                canvas.drawBitmap(bitmap, new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight()), rect, null);
+                bitmap.recycle();
+            }
+        }
+        return bg;
+    }
+
+    //回收所有子view
+    private void recycleAndClearSplitItemList()
+    {
+        if (mSplitItemList == null)
+        {
+            return;
+        }
+
+        for (SplitItem splitItem : mSplitItemList)
+        {
+            splitItem.recycle();
+        }
+
+        mSplitItemList.clear();
+        mSplitItemList = null;
+        System.gc();
+    }
+
+    public void reset()
+    {
+        recycleAndClearSplitItemList();
+        removeAllViews();
+    }
+}

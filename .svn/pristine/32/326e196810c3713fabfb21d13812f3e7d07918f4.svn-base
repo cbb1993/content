@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="320dp"
+        android:layout_height="200dp">
+   <TextView
+       android:layout_marginBottom="20dp"
+       android:layout_marginTop="10dp"
+       android:gravity="center_horizontal"
+       android:text="请输入文件（夹）名"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content" />
+    <RadioGroup
+        android:layout_gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:layout_width="220dp"
+        android:layout_height="wrap_content">
+        <RadioButton
+            android:padding="10dp"
+            android:checked="true"
+            android:textColor="@android:color/black"
+            android:text="文件"
+            android:layout_weight="1"
+            android:id="@+id/rbt_1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" />
+        <RadioButton
+            android:padding="10dp"
+            android:textColor="@android:color/black"
+            android:text="文件夹"
+            android:layout_weight="1"
+            android:id="@+id/rbt_2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" />
+    </RadioGroup>
+
+
+    <EditText
+        android:id="@+id/ev_filename"
+        android:layout_marginRight="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginBottom="10dp"/>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+       <TextView
+           android:id="@+id/tv_cancle"
+           android:gravity="center"
+           android:text="取消"
+           android:layout_weight="1"
+           android:layout_width="0dp"
+           android:layout_height="match_parent" />
+        <TextView
+            android:textColor="@color/lib_orange"
+            android:id="@+id/tv_confirm"
+            android:gravity="center"
+            android:text="确认"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent" />
+    </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

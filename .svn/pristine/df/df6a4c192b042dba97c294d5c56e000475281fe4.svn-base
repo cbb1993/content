@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <RelativeLayout
+        android:background="@color/lib_white"
+        android:descendantFocusability="blocksDescendants"
+        android:layout_width="match_parent"
+        android:layout_height="40dp" >
+        <ImageView
+            android:layout_marginLeft="5dp"
+            android:layout_centerVertical="true"
+            android:scaleType="fitXY"
+            android:id="@+id/item_file_iv_logo"
+            android:layout_width="34dp"
+            android:layout_height="34dp" />
+        <TextView
+            android:layout_toRightOf="@+id/item_file_iv_logo"
+            android:textColor="@android:color/black"
+            android:id="@+id/item_file_tv_name"
+            android:layout_marginLeft="10dp"
+            android:gravity="center_vertical"
+            android:text=""
+            android:layout_width="wrap_content"
+            android:layout_height="40dp" />
+        <CheckBox
+            android:layout_centerVertical="true"
+            android:visibility="gone"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/selector_checkbox"
+            android:enabled="false"
+            android:clickable="false"
+            android:focusable="false"
+            android:button="@null"
+            android:id="@+id/item_file_checkbox_select"
+            android:layout_alignParentRight="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    <View
+        android:layout_alignParentBottom="true"
+        android:background="@color/lib_grey"
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"/>
+    </RelativeLayout>
+
+
+</LinearLayout>

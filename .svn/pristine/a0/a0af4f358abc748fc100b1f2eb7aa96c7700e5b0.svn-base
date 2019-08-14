@@ -1,0 +1,351 @@
+package com.huanhong.content.presenter;
+
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.support.annotation.NonNull;
+import android.text.TextUtils;
+import android.util.Log;
+
+import com.google.gson.JsonObject;
+import com.huanhong.content.model.PlayMsgModel;
+import com.huanhong.content.model.info.ClientInfo;
+import com.huanhong.content.model.info.HistoryInfo;
+import com.huanhong.content.model.plan.Content;
+import com.huanhong.content.model.plan.Plan;
+import com.huanhong.content.model.plan.PlanContent;
+import com.huanhong.content.model.plan.PlanManager;
+import com.huanhong.content.model.plan.PlanSwitch;
+import com.huanhong.content.model.plan.Schedule;
+import com.huanhong.content.model.plan.ScheduleManager;
+import com.huanhong.content.model.plan.SplitSchedule;
+import com.huanhong.content.model.split.Split;
+import com.huanhong.content.model.split.SplitItem;
+import com.huanhong.content.model.split.SplitLayout;
+import com.huanhong.content.model.split.adaptive.AdaptiveSplitItem;
+import com.huanhong.content.view.i.MainView;
+import com.zyn.lib.presenter.BasePresenter;
+import com.zyn.lib.util.FileUtils;
+import com.zyn.lib.util.GsonUtils;
+import com.zyn.lib.util.HttpUtils;
+import com.zyn.lib.util.ThreadUtils;
+import com.zyn.lib.util.Utils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+
+public class MainPresenter extends BasePresenter<MainView> implements PlanManager.TotalPlanListener {
+    private SplitLayout mSplitLayout;
+    private PlanManager mPlanManager;
+    private Map<String, ScheduleManager> mScheduleManagerMap = new HashMap<>();
+
+    public MainPresenter(Context context, MainView view) {
+        super(context, view);
+        init();
+        ClientInfo
+                .getInstance()
+                .setMainPresenter(this);
+    }
+
+    private void init() {
+        //lock锁死屏幕
+        getView().lock();
+
+        mSplitLayout = new SplitLayout(getContext());
+
+        //计划管理者
+        mPlanManager = new PlanManager(this);
+
+        //检查当前设备的设置，判断按计划或本地播放
+        checkConfig();
+//
+    }
+
+    private void deinit() {
+        stopPlan();
+        mPlanManager.stop();
+        getView().unlock();
+    }
+
+    private void checkConfig() {
+        PlayMsgModel playMsgModel = PlayMsgModel.getPlayMsgInfo();
+
+        if (playMsgModel == null) {
+            onPlan();
+        } else {
+            if (playMsgModel
+                    .getType()
+                    .equals(PlayMsgModel.TYPE_PLAN)) {
+                onPlan();
+            } else {
+                onLocal(playMsgModel);
+            }
+        }
+    }
+
+    private void onPlan() {
+        if (HistoryInfo.hasPlan()) {
+            getView().show(mSplitLayout);
+            play(HistoryInfo.getPlanList());
+        } else {
+            getView().show(null);
+        }
+    }
+
+    private void onLocal(@NonNull PlayMsgModel msgModel) {
+        //web
+        if (msgModel
+                .getType()
+                .equals(PlayMsgModel.TYPE_LOCAL_WEB)) {
+            String url = msgModel.getWebUrl();
+            if (TextUtils.isEmpty(url)) {
+                getView().show(null);
+            } else {
+                List<String> list = new ArrayList<>();
+                list.add(HttpUtils.addHttpScheme(url));
+                play(getFullScreenPlanByType(Schedule.TYPE_H5, list));
+            }
+        }
+        //video
+        else if (msgModel
+                .getType()
+                .equals(PlayMsgModel.TYPE_LOCAL_VIDEO)) {
+            List<String> pathList = msgModel.getPlayList();
+            if (Utils.isEmptyList(pathList)) {
+                getView().show(null);
+            } else {
+                play(getFullScreenPlanByType(Schedule.TYPE_VIDEO, pathList));
+            }
+        }
+    }
+
+    private List<Plan> getFullScreenPlanByType(String type, List<String> list) {
+        String id = "0";
+
+        Split split = new Split();
+        split.setId(id);
+        split.setX(0);
+        split.setY(0);
+        split.setWidth(1);
+        split.setHeight(1);
+        List<Split> splitList = new ArrayList<>();
+        splitList.add(split);
+
+        List<Content> contentList = new ArrayList<>();
+        for (String s : list) {
+            Content content = new Content();
+            content.setLocal(true);
+            content.setUrl(s);
+            content.setShowPath(s);
+            content.setType(type);
+            contentList.add(content);
+        }
+
+        //schedule
+        Schedule schedule = new Schedule();
+        schedule.setFileType(type);
+        schedule.setContentList(contentList);
+        schedule.setNeedSeekTo(false);
+        schedule.setStart("00:00:00");
+        schedule.setEnd("23:59:59");
+        List<Schedule> scheduleList = new ArrayList<>();
+        scheduleList.add(schedule);
+
+        //totalSchedule对应不同分屏
+        SplitSchedule splitSchedule = new SplitSchedule();
+        splitSchedule.setId(id);
+        splitSchedule.setSchedule(scheduleList);
+        List<SplitSchedule> splitScheduleList = new ArrayList<>();
+        splitScheduleList.add(splitSchedule);
+
+        //开始plan
+        PlanContent planContent = new PlanContent();
+        planContent.setSplit(splitList);
+        planContent.setSplitSchedule(splitScheduleList);
+
+        Plan plan = new Plan();
+        plan.setPlanName("前端播放");
+        plan.setPlanContent(GsonUtils.getGson().toJsonTree(planContent).getAsJsonObject());
+        plan.setStartTime(System.currentTimeMillis());
+        plan.setEndTime(Long.MAX_VALUE);
+
+        List<Plan> planList = new ArrayList<>();
+        planList.add(plan);
+        return planList;
+    }
+
+    private void play(List<Plan> list) {
+        mPlanManager.setPlanList(list);
+        mPlanManager.start();
+    }
+
+
+    @Override
+    public void startPlan(JsonObject jPlanContent) {
+        if (jPlanContent == null) {
+            getView().show(null);
+            return;
+        }
+
+        //先暂停之前的plan
+        stopPlan();
+
+        PlanContent planContent;
+        //是否需要转换plan
+        if(jPlanContent.getAsJsonPrimitive("isPlanContent")!=null)
+        {
+            planContent = GsonUtils.getGson().fromJson(jPlanContent,PlanContent.class);
+        }
+        else
+        {
+            //转换plan
+            planContent = PlanSwitch.switchPlan(jPlanContent);
+        }
+
+        //若转换完成为null 空闲
+        if (planContent == null) {
+            return;
+        }
+
+        List<Split> splitList = planContent.getSplit();
+        List<SplitSchedule> splitScheduleList = planContent.getSplitSchedule();
+        if (splitList == null || splitScheduleList == null) {
+            getView().show(null);
+            return;
+        }
+
+        List<SplitItem> splitItemList = new ArrayList<>();
+        for (int i = 0; i < splitList.size(); i++) {
+            //分屏
+            Split split = splitList.get(i);
+            if (split == null) {
+                continue;
+            }
+            AdaptiveSplitItem splitItem = new AdaptiveSplitItem(getContext(), split);
+            splitItem.setActionList(split.getAction());
+            splitItemList.add(splitItem);
+
+            //寻找对应的total schedule
+            SplitSchedule splitSchedule = null;
+            for (SplitSchedule t : splitScheduleList) {
+                if (t != null
+                        && split.getId() != null
+                        && split
+                        .getId()
+                        .equals(t.getId())) {
+                    splitSchedule = t;
+                    break;
+                }
+            }
+
+            //创建schedule manager管理total schedule
+            if (splitSchedule != null) {
+                ScheduleManager scheduleManager = new ScheduleManager(splitItem);
+                scheduleManager.setSplitSchedule(splitSchedule);
+                mScheduleManagerMap.put(split.getId(), scheduleManager);
+            }
+        }
+
+        mSplitLayout.split(splitItemList);
+        getView().show(mSplitLayout);
+
+        //开启所有schedule manager
+        for (ScheduleManager scheduleManager : mScheduleManagerMap.values()) {
+            scheduleManager.start();
+        }
+    }
+
+
+    @Override
+    public void stopPlan() {
+        if (mScheduleManagerMap != null) {
+            for (ScheduleManager scheduleManager : mScheduleManagerMap.values()) {
+                if (scheduleManager != null) {
+                    scheduleManager.stop();
+                }
+            }
+            mScheduleManagerMap.clear();
+        }
+
+        if (mSplitLayout != null) {
+            mSplitLayout.reset();
+        }
+
+        getView().show(null);
+    }
+
+    public Map<String, Object> getCurrContent() {
+        Map<String, Object> map = new HashMap<>();
+        if (mSplitLayout != null) {
+            List<SplitItem> splitItemList = mSplitLayout.getSplitItemList();
+            if (splitItemList != null) {
+                for (SplitItem splitItem : splitItemList) {
+                    Split split = splitItem.getSplit();
+                    if (split != null) {
+                        map.put(split.getId(), splitItem.getCurrContent());
+                    }
+                }
+            }
+        }
+        return map;
+    }
+
+    public void getShot(final String id, final ShotListener listener) {
+        ThreadUtils.runOnWorkThread(new Runnable() {
+            String path;
+
+            @Override
+            public void run() {
+                if (mSplitLayout != null) {
+                    if (id.equals("0")) {
+                        Bitmap bitmap = mSplitLayout.getViewShot();
+                        if (bitmap != null) {
+                            String path = FileUtils.getDiskCacheDirPath(getContext()) + "/cache.jpg";
+                            Log.e(getClass().getSimpleName(), "截屏保存成功");
+                            FileUtils.saveBitmapToFile(bitmap, path);
+                            this.path = path;
+                        }
+                    } else {
+                        List<SplitItem> splitItemList = mSplitLayout.getSplitItemList();
+                        if (splitItemList != null) {
+                            for (SplitItem splitItem : splitItemList) {
+                                Split split = splitItem.getSplit();
+                                if (split != null) {
+                                    if (split.getId() != null && split
+                                            .getId()
+                                            .equals(id)) {
+                                        Bitmap bitmap = splitItem.getBitmapShot();
+                                        if (bitmap != null) {
+                                            String path = FileUtils.getDiskCacheDirPath(getContext()) + "/cache.jpg";
+                                            Log.e(getClass().getSimpleName(), "截屏保存成功");
+                                            FileUtils.saveBitmapToFile(bitmap, path);
+                                            this.path = path;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (listener != null) {
+                    listener.onFinish(path);
+                }
+            }
+        }, 0);
+    }
+
+    @Override
+    public void onDestory() {
+        super.onDestory();
+        deinit();
+        ClientInfo
+                .getInstance()
+                .setMainPresenter(null);
+    }
+
+    public interface ShotListener {
+        void onFinish(String path);
+    }
+}

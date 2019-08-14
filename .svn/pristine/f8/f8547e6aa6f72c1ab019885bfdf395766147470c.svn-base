@@ -1,0 +1,136 @@
+package com.huanhong.content.model.plan;
+
+import android.text.TextUtils;
+
+import com.google.gson.annotations.SerializedName;
+import com.zyn.lib.util.Utils;
+
+import java.io.Serializable;
+import java.util.List;
+
+public class Schedule implements Serializable {
+    //2.视频4.图片5.PPT7.链接
+    public static final String TYPE_VIDEO = "2";
+    public static final String TYPE_IMAGE = "4";
+    public static final String TYPE_PPT = "5";
+    public static final String TYPE_H5 = "7";
+
+    private String taskNo, taskName, planId;
+
+    //播放次序1顺序播放2循环播放3随机播放"
+    private int playOrder;
+
+    //"文件类型1.音视频2.图片3.ppt4.url"
+    private String fileType;
+
+    //执行的是哪一天 按天执行的计划是1 按周执行周一是1周二是2以此类推
+    private int taskDay;
+    private int taskLevel;
+    private String start, end;
+    private Boolean isNeedSeekTo = true;
+
+    @SerializedName("files")
+    private List<Content> contentList;
+
+    public String getTaskNo() {
+        return taskNo;
+    }
+
+    public void setTaskNo(String taskNo) {
+        this.taskNo = taskNo;
+    }
+
+    public String getTaskName() {
+        return taskName;
+    }
+
+    public void setTaskName(String taskName) {
+        this.taskName = taskName;
+    }
+
+    public int getPlayOrder() {
+        return playOrder;
+    }
+
+    public void setPlayOrder(int playOrder) {
+        this.playOrder = playOrder;
+    }
+
+    public String getPlanId() {
+        return planId;
+    }
+
+    public void setPlanId(String planId) {
+        this.planId = planId;
+    }
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
+    }
+
+    public int getTaskDay() {
+        return taskDay;
+    }
+
+    public void setTaskDay(int taskDay) {
+        this.taskDay = taskDay;
+    }
+
+    public int getTaskLevel() {
+        return taskLevel;
+    }
+
+    public void setTaskLevel(int taskLevel) {
+        this.taskLevel = taskLevel;
+    }
+
+    public List<Content> getContentList() {
+        return contentList;
+    }
+
+    public void setContentList(List<Content> contentList) {
+        this.contentList = contentList;
+    }
+
+    public String getStart() {
+        return start;
+    }
+
+    public void setStart(String start) {
+        this.start = start;
+    }
+
+    public String getEnd() {
+        return end;
+    }
+
+    public void setEnd(String end) {
+        this.end = end;
+    }
+
+    public Boolean getNeedSeekTo() {
+        return isNeedSeekTo;
+    }
+
+    public void setNeedSeekTo(Boolean needSeekTo) {
+        isNeedSeekTo = needSeekTo;
+    }
+
+    public long getStartTime() {
+        if (TextUtils.isEmpty(start)) {
+            return 0;
+        }
+        return Utils.getTimestamp(Utils.getCurrDate(), getStart());
+    }
+
+    public long getEndTime() {
+        if (TextUtils.isEmpty(end)) {
+            return 0;
+        }
+        return Utils.getTimestamp(Utils.getCurrDate(), getEnd());
+    }
+}

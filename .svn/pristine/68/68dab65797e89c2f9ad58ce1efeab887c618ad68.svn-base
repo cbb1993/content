@@ -1,0 +1,114 @@
+package com.huanhong.content.model.plan.server;
+
+import com.google.gson.annotations.SerializedName;
+
+import java.io.Serializable;
+import java.util.List;
+
+public class ServerSchedule implements Serializable {
+    //2.视频4.图片5.PPT7.链接
+    public static final String TYPE_VIDEO = "2";
+    public static final String TYPE_IMAGE = "4";
+    public static final String TYPE_PPT = "5";
+    public static final String TYPE_H5 = "7";
+
+    private String taskNo, taskName, planId;
+    @SerializedName("frequency")
+    private int count;
+
+
+    private long playTime;
+
+    //"文件类型1.音视频2.图片3.ppt4.url"
+    private String fileType;
+    private String start, end;
+
+    @SerializedName("lcFiles")
+    private List<ServerContent> contentList;
+
+    public String getTaskNo() {
+        return taskNo;
+    }
+
+    public void setTaskNo(String taskNo) {
+        this.taskNo = taskNo;
+    }
+
+    public String getTaskName() {
+        return taskName;
+    }
+
+    public void setTaskName(String taskName) {
+        this.taskName = taskName;
+    }
+
+    public String getPlanId() {
+        return planId;
+    }
+
+    public void setPlanId(String planId) {
+        this.planId = planId;
+    }
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
+    }
+
+    public List<ServerContent> getContentList() {
+        return contentList;
+    }
+
+    public void setContentList(List<ServerContent> contentList) {
+        this.contentList = contentList;
+    }
+
+    public String getStart() {
+        return start;
+    }
+
+    public void setStart(String start) {
+        this.start = start;
+    }
+
+    public String getEnd() {
+        return end;
+    }
+
+    public void setEnd(String end) {
+        this.end = end;
+    }
+
+    public long getPlayTime() {
+        return playTime;
+    }
+
+    public void setPlayTime(long playTime) {
+        this.playTime = playTime;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
+
+    //    public long getStartTime() {
+//        if (TextUtils.isEmpty(start)) {
+//            return 0;
+//        }
+//        return Utils.getTimestamp(Utils.getCurrDate(), getStart());
+//    }
+//
+//    public long getEndTime() {
+//        if (TextUtils.isEmpty(end)) {
+//            return 0;
+//        }
+//        return Utils.getTimestamp(Utils.getCurrDate(), getEnd());
+//    }
+}

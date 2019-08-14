@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.zhy.android.percent.support.PercentLinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/lib_white">
+    <RelativeLayout
+        app:layout_marginLeftPercent="2%"
+        android:background="@color/lib_white"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_heightPercent="10%">
+        <TextView
+            android:id="@+id/activity_file_tv_back"
+            android:padding="10dp"
+            android:layout_centerVertical="true"
+            android:text="返回"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/tv_title"
+            android:text="文件"
+            android:layout_centerInParent="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <LinearLayout
+            android:layout_marginRight="30dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView
+                android:visibility="gone"
+                android:layout_marginRight="5dp"
+                android:id="@+id/activity_file_tv_canlce"
+                android:padding="10dp"
+                android:text="取消"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:visibility="gone"
+                android:layout_marginRight="5dp"
+                android:id="@+id/activity_file_tv_sure"
+                android:padding="10dp"
+                android:text="完成"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+    </RelativeLayout>
+    <View
+        android:background="@color/lib_grey"
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"/>
+    <HorizontalScrollView
+        app:layout_heightPercent="10%"
+        android:background="@color/lib_white"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:padding="2dp" >
+        <LinearLayout
+            android:id="@+id/activity_file_top_ll"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"></LinearLayout>
+    </HorizontalScrollView>
+    <View
+        android:background="@color/lib_grey"
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"/>
+
+    <ListView
+        app:layout_heightPercent="70%"
+        android:layout_above="@+id/sign"
+        android:id="@+id/activity_file_listview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <View
+        android:id="@+id/sign"
+        android:layout_above="@+id/activity_file_bottom_ll"
+        android:background="@color/lib_grey"
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"/>
+        <LinearLayout
+            android:background="#fff"
+            android:layout_alignParentBottom="true"
+            android:id="@+id/activity_file_bottom_ll"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <TextView
+                android:visibility="gone"
+                android:id="@+id/activity_file_tv_creat"
+                android:gravity="center"
+                android:text="新建"
+                android:layout_weight="1.0"
+                android:layout_width="0dp"
+                android:layout_height="match_parent" />
+
+            <TextView
+                android:visibility="gone"
+                android:id="@+id/activity_file_tv_delete"
+                android:gravity="center"
+                android:text="删除"
+                android:layout_weight="1.0"
+                android:layout_width="0dp"
+                android:layout_height="match_parent" />
+            <TextView
+                android:id="@+id/activity_file_tv_play"
+                android:gravity="center"
+                android:text="选择播放文件"
+                android:layout_weight="1.0"
+                android:layout_width="0dp"
+                android:layout_height="match_parent" />
+            <TextView
+                android:visibility="gone"
+                android:id="@+id/activity_file_tv_download"
+                android:gravity="center"
+                android:text="下载"
+                android:layout_weight="1.0"
+                android:layout_width="0dp"
+                android:layout_height="match_parent" />
+        </LinearLayout>
+
+
+
+
+
+</com.zhy.android.percent.support.PercentLinearLayout>

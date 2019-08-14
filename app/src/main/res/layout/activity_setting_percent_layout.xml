@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.zhy.android.percent.support.PercentLinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/lib_white"
+    >
+
+    <com.zhy.android.percent.support.PercentRelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:layout_heightPercent="10%">
+
+        <TextView
+            android:id="@+id/activity_setting_tv_connectstatus"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:gravity="center"
+            android:text="连接状态：已连接"
+            android:textColor="#232323"
+            app:layout_heightPercent="40%"
+            app:layout_marginLeftPercent="3%"
+            android:layout_centerVertical="true"
+            />
+
+        <TextView
+            android:id="@+id/activity_setting_tv_status"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@id/activity_setting_tv_connectstatus"
+            android:gravity="center"
+            android:text="登陆状态：已登陆"
+            android:textColor="#232323"
+            app:layout_heightPercent="40%"
+            app:layout_marginLeftPercent="6%" />
+
+
+
+        <TextView
+            android:id="@+id/activity_setting_tv_no"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@id/activity_setting_tv_status"
+            android:gravity="center"
+            android:textColor="#232323"
+            app:layout_heightPercent="40%"
+            app:layout_marginLeftPercent="6%" />
+        <LinearLayout
+            android:orientation="vertical"
+            android:paddingRight="10dp"
+            android:paddingLeft="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:gravity="center"
+            app:layout_heightPercent="40%"
+            app:layout_marginRightPercent="3%">
+            <TextView
+                android:id="@+id/activity_setting_tv_edit"
+                android:text="切换帐号"
+                android:textColor="@color/blue_338ef0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <View
+                android:background="@color/blue_338ef0"
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"/>
+        </LinearLayout>
+
+
+    </com.zhy.android.percent.support.PercentRelativeLayout>
+    <View
+        android:background="@color/lib_grey"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_heightPercent="1%"/>
+
+    <RadioGroup
+        android:id="@+id/activity_setting_rg"
+        android:orientation="horizontal"
+        app:layout_heightPercent="10%"
+        app:layout_widthPercent="74%"
+        app:layout_marginTopPercent="10%"
+        android:layout_gravity="center_horizontal"
+        android:layout_width="0dp"
+        android:layout_height="0dp">
+
+        <RadioButton
+
+            android:id="@+id/activity_setting_rbtn_webpage"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:background="@drawable/selector_select_bg_left"
+            android:button="@null"
+            android:gravity="center"
+            android:text="展示网页"
+            android:textColor="@drawable/selector_select_tv_color" />
+
+        <RadioButton
+            android:id="@+id/activity_setting_rbtn_vedio"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:background="@drawable/selector_select_bg_right"
+            android:button="@null"
+            android:gravity="center"
+            android:text="展示视频"
+            android:textColor="@drawable/selector_select_tv_color" />
+    </RadioGroup>
+
+    <com.zhy.android.percent.support.PercentLinearLayout
+        android:id="@+id/activity_setting_ll_webpage"
+        android:layout_gravity="center_horizontal"
+        app:layout_marginTopPercent="6%"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_heightPercent="40%"
+        app:layout_widthPercent="74%"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/activity_setting_spinner"
+            android:textColor="#232323"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:background="@drawable/shap_bg_white"
+            android:gravity="center_vertical"
+            android:paddingLeft="20dp"
+            android:text="请选择网址"
+            app:layout_heightPercent="25%" />
+
+        <LinearLayout
+            app:layout_marginTopPercent="14%"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_heightPercent="25%">
+
+            <TextView
+                android:id="@+id/tv_wait"
+                android:layout_gravity="center_vertical"
+                android:textColor="#232323"
+                android:text="静默等待时间："
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <EditText
+                android:inputType="number"
+                android:id="@+id/activity_setting_ev_keeptime"
+                android:textColorHint="#b5b4b4"
+                android:hint="秒"
+                android:textColor="#232323"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/shap_bg_white"
+                android:gravity="center_vertical"
+                android:paddingLeft="20dp" />
+        </LinearLayout>
+
+    </com.zhy.android.percent.support.PercentLinearLayout>
+    <com.zhy.android.percent.support.PercentLinearLayout
+        android:id="@+id/activity_setting_ll_vedio"
+        android:layout_gravity="center_horizontal"
+        app:layout_marginTopPercent="6%"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_heightPercent="40%"
+        app:layout_widthPercent="74%"
+        android:visibility="gone">
+        <TextView
+            android:id="@+id/activity_setting_tv_choosefile"
+            android:textColor="#232323"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:background="@drawable/shap_bg_white"
+            android:gravity="center_vertical"
+            android:paddingLeft="20dp"
+            android:text="选择视频文件"
+            app:layout_heightPercent="25%" />
+    </com.zhy.android.percent.support.PercentLinearLayout>
+
+    <com.zhy.android.percent.support.PercentLinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center"
+        app:layout_heightPercent="12%">
+
+        <TextView
+            android:gravity="center"
+            android:id="@+id/activity_setting_tv_save"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/shap_bg_whiteall_corner"
+            android:elevation="2dp"
+            android:text="保存设置"
+            android:textColor="#232323"
+            app:layout_heightPercent="85%"
+            app:layout_widthPercent="20%" />
+
+        <TextView
+            android:gravity="center"
+            android:id="@+id/activity_setting_tv_plan"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/shap_bg_whiteall_corner"
+            android:elevation="2dp"
+            android:text="按计划播放"
+            android:textColor="#232323"
+            app:layout_marginLeftPercent="7%"
+            app:layout_widthPercent="20%"
+            app:layout_heightPercent="85%"/>
+    </com.zhy.android.percent.support.PercentLinearLayout>
+
+</com.zhy.android.percent.support.PercentLinearLayout>

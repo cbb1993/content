@@ -1,0 +1,58 @@
+package com.huanhong.content.model.plan;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.huanhong.content.model.DownLoadModel;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created by tuka2401 on 2017/3/20.
+ */
+
+//负责plan的转换工作，从服务器提供的plan转换为我们支持格式的plan
+public class PlanSwitch {
+    public static PlanContent switchPlan(JsonObject plan) {
+        if(plan!=null)
+        {
+            PlanContent planContent = new Gson().fromJson(plan,PlanContent.class);
+            return planContent;
+        }
+
+        return null;
+    }
+
+    public static List<Content> getContentList(JsonObject plan)
+    {
+        List<Content> list = new ArrayList<>();
+        if(plan!=null)
+        {
+            PlanContent planContent = switchPlan(plan);
+            List<SplitSchedule> splitScheduleList = planContent.getSplitSchedule();
+
+            if (splitScheduleList != null)
+            {
+                for (SplitSchedule splitSchedule : splitScheduleList)
+                {
+                    List<Schedule> scheduleList = splitSchedule.getSchedule();
+                    if (scheduleList != null)
+                    {
+                        for (Schedule schedule : scheduleList)
+                        {
+                            List<Content> contentList = schedule.getContentList();
+                            if (contentList != null)
+                            {
+                                for (Content content : contentList)
+                                {
+                                    list.add(content);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return list;
+    }
+}

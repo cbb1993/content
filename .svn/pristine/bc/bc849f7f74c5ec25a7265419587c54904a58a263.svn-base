@@ -1,0 +1,133 @@
+package com.huanhong.content.model.info;
+
+import com.huanhong.content.model.api.ApiClient;
+import com.huanhong.content.model.login.Login;
+import com.huanhong.content.model.login.LoginHandler;
+import com.huanhong.content.presenter.MainPresenter;
+
+
+public class ClientInfo implements ApiClient.ApiClientListener, LoginHandler.LoginHandlerListener
+{
+    private static ClientInfo mInstance;
+    private boolean mIsConnected = false;
+    private boolean mIsLogined = false;
+    private boolean mIsSyncing = false;
+    private MainPresenter mMainPresenter;
+
+    private ClientInfo()
+    {
+
+    }
+
+    public static synchronized ClientInfo getInstance()
+    {
+        if (mInstance == null)
+        {
+            mInstance = new ClientInfo();
+        }
+        return mInstance;
+    }
+
+    public void init()
+    {
+        ApiClient
+                .getInstance()
+                .addApiClientListener(this);
+
+        LoginHandler
+                .getInstance()
+                .addLoginHandlerListener(this);
+    }
+
+    @Override
+    public void onInited()
+    {
+        mIsConnected = false;
+        mIsLogined = false;
+    }
+
+    @Override
+    public void onConnected()
+    {
+        mIsConnected = true;
+        if (Login.hasInfo())
+        {
+            LoginHandler
+                    .getInstance()
+                    .login();
+        }
+    }
+
+    @Override
+    public void onConnectFailed(Exception e)
+    {
+        mIsConnected = false;
+    }
+
+    @Override
+    public void onSent(String message)
+    {
+
+    }
+
+    @Override
+    public void onSendFailed(String message, Exception e)
+    {
+
+    }
+
+    @Override
+    public void onError(Exception e)
+    {
+
+    }
+
+    @Override
+    public void onDisconnected()
+    {
+        mIsConnected = false;
+        mIsLogined = false;
+    }
+
+    @Override
+    public void onLoginSucceed()
+    {
+        mIsLogined = true;
+    }
+
+    @Override
+    public void onLoginFailed(String msg)
+    {
+        mIsLogined = false;
+    }
+
+    public boolean isConnected()
+    {
+        return mIsConnected;
+    }
+
+    public boolean isLogined()
+    {
+        return mIsLogined;
+    }
+
+    public boolean isSyncing()
+    {
+        return mIsSyncing;
+    }
+
+    public void setSyncing(boolean syncing)
+    {
+        mIsSyncing = syncing;
+    }
+
+    public MainPresenter getMainPresenter()
+    {
+        return mMainPresenter;
+    }
+
+    public void setMainPresenter(MainPresenter mainPresenter)
+    {
+        mMainPresenter = mainPresenter;
+    }
+}

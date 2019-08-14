@@ -1,0 +1,104 @@
+package com.huanhong.content.model.plan;
+
+import android.text.TextUtils;
+
+import com.google.gson.annotations.SerializedName;
+import com.zyn.lib.util.Utils;
+
+import java.io.Serializable;
+import java.util.List;
+
+public class Schedule implements Serializable {
+    //2.视频4.图片5.PPT7.链接
+    public static final String TYPE_VIDEO = "2";
+    public static final String TYPE_IMAGE = "4";
+    public static final String TYPE_H5 = "7";
+
+    //"文件类型1.音视频2.图片3.ppt4.url"
+    private String fileType;
+    private int count;
+    private long playTime;
+
+    private long startTime,endTime;
+    private Boolean isNeedSeekTo = true;
+
+    @SerializedName("files")
+    private List<Content> contentList;
+
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
+    }
+
+
+    public List<Content> getContentList() {
+        return contentList;
+    }
+
+    public void setContentList(List<Content> contentList) {
+        this.contentList = contentList;
+    }
+
+    public Boolean getNeedSeekTo() {
+        return isNeedSeekTo;
+    }
+
+    public void setNeedSeekTo(Boolean needSeekTo) {
+        isNeedSeekTo = needSeekTo;
+    }
+
+//    public long getStartTime() {
+//        if (TextUtils.isEmpty(start)) {
+//            return 0;
+//        }
+//        return Utils.getTimestamp(Utils.getCurrDate(), getStart());
+//    }
+//
+//    public long getEndTime() {
+//        if (TextUtils.isEmpty(end)) {
+//            return 0;
+//        }
+//        return Utils.getTimestamp(Utils.getCurrDate(), getEnd());
+//    }
+
+
+    public static String getTypeVideo() {
+        return TYPE_VIDEO;
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(long endTime) {
+        this.endTime = endTime;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
+
+    public long getPlayTime() {
+        return playTime;
+    }
+
+    public void setPlayTime(long playTime) {
+        this.playTime = playTime;
+    }
+}

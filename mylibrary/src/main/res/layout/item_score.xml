@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/lib_white"
+    android:orientation="vertical"
+    android:paddingLeft="@dimen/lib_layout_padding"
+    android:paddingRight="@dimen/lib_layout_padding">
+
+    <TextView
+        android:id="@+id/tv_event_score_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="任命"
+        android:textColor="@color/lib_normal"
+        android:textSize="@dimen/lib_text_size_normal" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp">
+
+        <LinearLayout
+            android:id="@+id/ll_event_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="活动内容"
+                android:textColor="@color/lib_detail"
+                android:textSize="@dimen/lib_text_size_normal" />
+
+            <RatingBar
+                android:id="@+id/rab_event1"
+                style="?android:attr/ratingBarStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:numStars="5"
+                android:rating="3"
+                android:stepSize="1" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_event_service"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/lib_layout_padding"
+            android:layout_toRightOf="@id/ll_event_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="服务质量"
+                android:textColor="@color/lib_detail"
+                android:textSize="@dimen/lib_text_size_normal" />
+
+            <RatingBar
+                android:id="@+id/rab_event2"
+                style="?android:attr/ratingBarStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:numStars="5"
+                android:rating="3"
+                android:stepSize="1" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_event_place"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/ll_event_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="场馆环境"
+                android:textColor="@color/lib_detail"
+                android:textSize="@dimen/lib_text_size_normal" />
+
+            <RatingBar
+                android:id="@+id/rab_event3"
+                style="?android:attr/ratingBarStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:numStars="5"
+                android:rating="3"
+                android:stepSize="1" />
+
+        </LinearLayout>
+    </RelativeLayout>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv_event_score_img"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp" />
+
+    <TextView
+        android:id="@+id/tv_event_score_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="留言:$1%s"
+        android:textColor="@color/lib_normal"
+        android:textSize="@dimen/lib_text_size_normal" />
+
+    <LinearLayout
+        android:id="@+id/ll_event_score_reply"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/lib_shape_rect_grey_radius"
+        android:orientation="vertical"
+        android:padding="@dimen/lib_layout_padding">
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="10dp"
+        android:background="@color/lib_line" />
+</LinearLayout>

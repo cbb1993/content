@@ -1,0 +1,52 @@
+package com.huanhong.content.model.login;
+
+
+import android.text.TextUtils;
+
+import com.huanhong.content.model.api.ApiConstans;
+import com.zyn.lib.util.SharedPreferencesUtils;
+
+public class Login
+{
+    private String id, password;
+
+    public static void saveInfo(String id, String password)
+    {
+        SharedPreferencesUtils.addData(ApiConstans.LOGIN_ID, id);
+        SharedPreferencesUtils.addData(ApiConstans.LOGIN_PASSWORD, password);
+    }
+
+    public static Login getLogin()
+    {
+        Login login = new Login();
+        login.setId(SharedPreferencesUtils.readData(ApiConstans.LOGIN_ID));
+        login.setPassword(SharedPreferencesUtils.readData(ApiConstans.LOGIN_PASSWORD));
+        return login;
+    }
+
+    public static boolean hasInfo()
+    {
+        Login login = getLogin();
+        return !(TextUtils.isEmpty(login.getId()) || TextUtils.isEmpty(login.getPassword()));
+    }
+
+    public String getId()
+    {
+        return id;
+    }
+
+    public void setId(String id)
+    {
+        this.id = id;
+    }
+
+    public String getPassword()
+    {
+        return password;
+    }
+
+    public void setPassword(String password)
+    {
+        this.password = password;
+    }
+}

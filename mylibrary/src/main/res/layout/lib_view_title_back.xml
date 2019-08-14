@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ImageView
+
+        android:id="@+id/view_title_btn_back"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/lib_title_height"
+        android:layout_centerVertical="true"
+        android:contentDescription="@null"
+        android:paddingTop="@dimen/lib_layout_padding"
+        android:paddingBottom="@dimen/lib_layout_padding"
+        android:paddingLeft="@dimen/lib_layout_padding"
+        android:paddingRight="@dimen/lib_layout_padding"
+        android:src="@drawable/return1"/>
+
+</merge>

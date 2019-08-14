@@ -1,0 +1,233 @@
+package com.huanhong.content.model.split.adaptive;
+
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.text.TextUtils;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.RelativeLayout;
+
+import com.huanhong.content.R;
+import com.huanhong.content.model.plan.Action;
+import com.huanhong.content.model.plan.Content;
+import com.huanhong.content.model.plan.ScheduleManager;
+import com.huanhong.content.model.split.Split;
+import com.huanhong.content.model.split.SplitItem;
+import com.huanhong.content.view.view.DispatchLayout;
+import com.huanhong.content.view.view.TimerWebView;
+import com.zyn.lib.util.Utils;
+import com.zyn.lib.util.ViewUtils;
+
+import java.util.List;
+
+
+public class AdaptiveSplitItem extends SplitItem implements ScheduleManager.TotalScheduleListener, TimerWebView.TimerWebViewListener
+{
+    private final RelativeLayout.LayoutParams mParams;
+    private DispatchLayout mRootView;
+    private TimerWebView mWebView; //用作触摸弹出
+    private Adapter mAdapter;
+    private List<Action> mActionList;
+    private Action mAction;
+
+    public AdaptiveSplitItem(Context context, Split split)
+    {
+        super(context, split);
+
+        //root
+        mRootView = new DispatchLayout(context);
+        mRootView.setBackgroundColor(getContext()
+                .getResources()
+                .getColor(R.color.lib_black));
+        mParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        mParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+
+        //弹出h5
+        mWebView = new TimerWebView(getContext());
+        mWebView.setTimerWebViewListener(this);
+        mWebView.setVisibility(View.GONE);
+        mRootView.addView(mWebView, mParams);
+        mRootView.setDispatchListener(new DispatchLayout.DispatchListener()
+        {
+            @Override
+            public void onDispatchTouchEvent(MotionEvent ev)
+            {
+                if (ev.getActionMasked() == MotionEvent.ACTION_DOWN
+                        && !isPlayingOther())
+                {
+                    List<Action> actionList = null;
+
+                    //从adapter中获得当前动作列表
+                    if(mAdapter!=null)
+                    {
+                        actionList = mAdapter.getCurrActionList();
+                    }
+
+                    //若adapter中没有则获得分屏的动作列表
+                    if(Utils.isEmptyList(actionList))
+                    {
+                        actionList = mActionList;
+                    }
+
+                    //若动作列表不为空
+                    if (!Utils.isEmptyList(actionList)
+                            && !TextUtils.isEmpty(actionList
+                            .get(0)
+                            .getResultContent()))
+                    {
+                        mAction = actionList
+                                .get(0);
+                        deinitAdapter();
+                        mWebView.setVisibility(View.VISIBLE);
+                        mWebView.bringToFront();
+                        mWebView.setUri(actionList
+                                .get(0)
+                                .getResultContent());
+                        mWebView.setKeepTime(actionList
+                                .get(0)
+                                .getWaitTime());
+                        mWebView.load();
+                    }
+                }
+            }
+        });
+
+        //空闲状态
+        playNull();
+    }
+
+    private void initAdapter()
+    {
+        if (mAdapter != null)
+        {
+            mAdapter.init();
+            View view = mAdapter.getView();
+            if (view != null)
+            {
+                mRootView.addView(view, mParams);
+            }
+        }
+    }
+
+    private void deinitAdapter()
+    {
+        if (mAdapter != null)
+        {
+            mRootView.removeView(mAdapter.getView());
+            mAdapter.deinit();
+        }
+    }
+
+    @Override
+    public View getView()
+    {
+        return mRootView;
+    }
+
+    @Override
+    public void recycle()
+    {
+        mWebView.deinit();
+        mWebView = null;
+        deinitAdapter();
+        mRootView.removeAllViews();
+        mRootView = null;
+        mAction = null;
+    }
+
+    @Override
+    public void playWeb(List<Content> url)
+    {
+        play(new WebAdapter(getContext(), url));
+    }
+
+    @Override
+    public void playVideo(List<Content> url, long startTime, Boolean isNeedSeekTo)
+    {
+        play(new VideoAdapter(getContext(), url, startTime, isNeedSeekTo));
+    }
+
+    @Override
+    public void playImages(List<Content> url)
+    {
+        play(new ImageAdapter(getContext(), url));
+    }
+
+    @Override
+    public void playNull()
+    {
+        play(new TextAdapter(getContext(), getContext().getString(R.string.no_plan)));
+    }
+
+    private void play(Adapter adapter)
+    {
+        deinitAdapter();
+        mAdapter = adapter;
+        if (!isPlayingOther())
+        {
+            initAdapter();
+        }
+    }
+
+    private boolean isPlayingOther()
+    {
+        return mWebView != null && mWebView.getVisibility() == View.VISIBLE;
+    }
+
+    @Override
+    public Bitmap getBitmapShot()
+    {
+        Bitmap bitmap = null;
+        if (isPlayingOther())
+        {
+            bitmap = ViewUtils.getViewShot(mWebView);
+        } else if (mAdapter != null)
+        {
+            bitmap = mAdapter.getBitmapShot();
+        }
+        return bitmap;
+    }
+
+    @Override
+    public Object getCurrContent()
+    {
+        if (isPlayingOther())
+        {
+            return mAction;
+        } else
+        {
+            if (mAdapter != null)
+            {
+                return mAdapter.getCurrContent();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void outTime()
+    {
+        mAction = null;
+        if (mWebView != null)
+        {
+            mWebView.setVisibility(View.GONE);
+            mWebView.unload();
+        }
+        if (mAdapter == null)
+        {
+            playNull();
+        }
+        play(mAdapter);
+    }
+
+    public List<Action> getActionList()
+    {
+        return mActionList;
+    }
+
+    public void setActionList(List<Action> actionList)
+    {
+        mActionList = actionList;
+    }
+}
