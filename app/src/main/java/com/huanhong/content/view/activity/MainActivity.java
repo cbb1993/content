@@ -63,7 +63,7 @@ public class MainActivity extends BaseActivity implements MainView
         mLayoutParams = new WindowManager.LayoutParams();
         mLayoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
         mLayoutParams.height = WindowManager.LayoutParams.MATCH_PARENT;
-        mLayoutParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ERROR;//关键,可以屏蔽状态栏和导航栏
+        mLayoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;//关键,可以屏蔽状态栏和导航栏
         mLayoutParams.flags = WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                 | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON | WindowManager.LayoutParams.FLAG_FULLSCREEN;
 

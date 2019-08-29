@@ -57,44 +57,42 @@ public class VideoPicAdapter extends Adapter {
     private View rl_right;
     private ImageView iv_open;
     private boolean open = true;
-    private int webTime = 15_000; // 30没有触摸
+    private int webTime = 10_000; // 30没有触摸
     private WebView webview;
     private Timer mKeepTimer;
     private TimerTask mKeepTimerTask;
     private Handler mMainHandler;
-//    https://pixl.decathlon.com.cn/p1604177/k$25ea1b3776d40259ed7937573e80e343/sq/ROAD+RACING+900+AF+CN.jpg?f=700x700
-    //https://pixl.decathlon.com.cn/p1325496/k$36098282622bb5af8696358f010ea063/sq/TUC+100+Elops+LF.jpg?f=550x550
-    class ItemData{
-        String pic,name,no;
+    private static final long DOUBLE_TIME = 1000;
+    private static long lastClickTime = 0;
+    private int current ;
 
-    public ItemData(String pic, String name, String no) {
+    private boolean pause =false;
+    class ItemData{
+        String name,no;
+        int pic;
+
+    public ItemData(int pic, String name, String no) {
         this.pic = pic;
         this.name = name;
         this.no = no;
     }
 }
-//    http://content.aiairy.com/1/root/o_1cvf1eh901s2lol434utib1k13e.mp4:1/root/xxxxx.mp4
-//    http://content.aiairy.com/1/root/o_1cvf1e9md1nbuviksgkth86pb.mp4:1/root/yyyyyy.mp4
+
 private List<ItemData> itemData =new ArrayList<>();
     public VideoPicAdapter(Context context, List<ServerContent> pathList, long startTime, boolean isNeedSeekTo) {
         super(context);
-
-
         mPathList = pathList;
-
-
-        Log.e("--11111111111111------","----"+pathList);
         mStartTime = startTime;
         mIsNeedSeekTo = isNeedSeekTo;
         itemData.add(new ItemData(
-             "https://pixl.decathlon.com.cn/p1604177/k$25ea1b3776d40259ed7937573e80e343/sq/ROAD+RACING+900+AF+CN.jpg?f=700x700",
-             "ROAD RACING 900 CF CN",
-                "309744"
+             R.mipmap.pic_test1,
+             "Dyson戴森 吹风机",
+                "https://detail.tmall.com/item.htm?spm=a1z10.4-b-s.w16608505-14629593645.2.53a8f0c9ERxxHI&id=536027498869"
         ));
          itemData.add(new ItemData(
-                     "https://pixl.decathlon.com.cn/p1325496/k$36098282622bb5af8696358f010ea063/sq/TUC+100+Elops+LF.jpg?f=550x550",
-                     "TUC 100 ELOPS LF - 黑色",
-                        "153771"
+                 R.mipmap.pic_test2,
+                     "Dyson戴森V11 Absolute智能无线吸尘器",
+                        "https://detail.tmall.com/item.htm?spm=a220m.1000858.1000725.1.65a22065GoeOkg&id=589345613482&skuId=4030847957373&areaId=310100&user_id=2089100916&cat_id=2&is_b=1&rn=9dd4b764e9c33fcd81690ac2e568aec9"
                 ));
 
     }
@@ -152,13 +150,11 @@ private List<ItemData> itemData =new ArrayList<>();
             @Override
             public void convert(final ViewHolder holder, ServerContent content) {
                 TextView tv_title = holder.getView(R.id.tv_title);
-                TextView tv_no = holder.getView(R.id.tv_no);
                 ImageView iv_ = holder.getView(R.id.iv_);
                 View root = holder.getView(R.id.root);
 //                View iv_left = holder.getView(R.id.view_left);
 //                tv_title.setText(content.getFileName());
                 tv_title.setText(itemData.get(holder.getRealPosition()).name);
-                tv_no.setText("款号："+itemData.get(holder.getRealPosition()).no);
 
                 if (mCount == holder.getRealPosition()) {
                     iv_.setVisibility(View.VISIBLE);
@@ -196,8 +192,29 @@ private List<ItemData> itemData =new ArrayList<>();
             public void onCompletion(MediaPlayer mp) {
                 Log.e(getClass().getSimpleName(), " 视频结束");
                 // 播放网页
-                stop();
+                pause=false;
                 showWeb();
+            }
+        });
+
+        mVideoView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                long currentTimeMillis = System.currentTimeMillis();
+                if (currentTimeMillis - lastClickTime < DOUBLE_TIME) {
+                    current=mVideoView.getCurrentPosition();
+                    pause=true;
+                    mVideoView.pause();
+                    webview.loadUrl(itemData.get(mCount).no);
+                    resetPauseKeepTimer();
+                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            webview.setVisibility(View.VISIBLE);
+                        }
+                    },1000);
+                }
+                lastClickTime = currentTimeMillis;
             }
         });
 
@@ -229,9 +246,16 @@ private List<ItemData> itemData =new ArrayList<>();
     }
 
     private void showWeb(){
-        webview.setVisibility(View.VISIBLE);
-        webview.loadUrl("https://www.decathlon.com.cn/zh/");
+        stop();
+        webview.loadUrl(itemData.get(mCount).no);
         resetKeepTimer();
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                webview.setVisibility(View.VISIBLE);
+            }
+        },1000);
+
     }
 
     private void showVideo(){
@@ -278,7 +302,11 @@ private List<ItemData> itemData =new ArrayList<>();
             {
                 if (event.getActionMasked() == MotionEvent.ACTION_DOWN || event.getActionMasked() == MotionEvent.ACTION_UP)
                 {
-                    resetKeepTimer();
+                    if(pause){
+                        resetPauseKeepTimer();
+                    }else {
+                        resetKeepTimer();
+                    }
                 }
                 return false;
             }
@@ -309,6 +337,41 @@ private List<ItemData> itemData =new ArrayList<>();
         };
         mKeepTimer.schedule(mKeepTimerTask, webTime);
     }
+
+    private void resetPauseKeepTimer()
+    {
+        if (mKeepTimerTask != null)
+        {
+            mKeepTimerTask.cancel();
+        }
+
+        mKeepTimerTask = new TimerTask()
+        {
+            @Override
+            public void run()
+            {
+                mMainHandler.post(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        // 继续播放视频
+                        if(mVideoView!=null){
+                            webview.setVisibility(View.GONE);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mVideoView.start();
+                                }
+                            },500);
+                        }
+                    }
+                });
+            }
+        };
+        mKeepTimer.schedule(mKeepTimerTask, webTime);
+    }
+
     private void startNextVideo(int seekTo) {
         if (mVideoView == null) {
             return;
@@ -321,9 +384,9 @@ private List<ItemData> itemData =new ArrayList<>();
         mCurr = getNextUrl();
 
         if(mCount==0){
-            mCurr = mCurr.replace("o_1cvf1eh901s2lol434utib1k13e","xxxxx") ;
+            mCurr = mCurr.replace("o_1cvf1eh901s2lol434utib1k13e","test1") ;
         }else if(mCount==1){
-            mCurr = mCurr.replace("o_1cvf1e9md1nbuviksgkth86pb","yyyyyy") ;
+            mCurr = mCurr.replace("o_1cvf1e9md1nbuviksgkth86pb","test2") ;
         }
 
         mVideoView.setVideoPath(mCurr);
@@ -351,9 +414,9 @@ private List<ItemData> itemData =new ArrayList<>();
                         .getShowPath());
         mCount = p ;
         if(mCount==0){
-            mCurr = mCurr.replace("o_1cvf1eh901s2lol434utib1k13e","xxxxx") ;
+            mCurr = mCurr.replace("o_1cvf1eh901s2lol434utib1k13e","test1") ;
         }else if(mCount==1){
-            mCurr = mCurr.replace("o_1cvf1e9md1nbuviksgkth86pb","yyyyyy") ;
+            mCurr = mCurr.replace("o_1cvf1e9md1nbuviksgkth86pb","test2") ;
         }
 
         mVideoView.setVideoPath(mCurr);

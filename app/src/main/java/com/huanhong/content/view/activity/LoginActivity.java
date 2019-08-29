@@ -1,6 +1,13 @@
 package com.huanhong.content.view.activity;
 
+import android.Manifest;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Handler;
+import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.PermissionChecker;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -38,16 +45,46 @@ public class LoginActivity extends BaseActivity{
     protected void initView() {
         super.initView();
 //        MyBlueToothInitUtil.init(this);
-        activity_login_tv_acount= (EditText) findViewById(R.id.activity_login_tv_acount);
-        activity_login_tv_password= (EditText) findViewById(R.id.activity_login_tv_password);
-        activity_login_btn_confirm= (TextView) findViewById(R.id.activity_login_btn_confirm);
-        tv_title= (TextView) findViewById(R.id.tv_title);
-        tv_login= (TextView) findViewById(R.id.tv_login);
+        activity_login_tv_acount = (EditText) findViewById(R.id.activity_login_tv_acount);
+        activity_login_tv_password = (EditText) findViewById(R.id.activity_login_tv_password);
+        activity_login_btn_confirm = (TextView) findViewById(R.id.activity_login_btn_confirm);
+        tv_title = (TextView) findViewById(R.id.tv_title);
+        tv_login = (TextView) findViewById(R.id.tv_login);
 
-        TextSizeUtil.setTextSize(this,tv_title,0.07f);
-        TextSizeUtil.setTextSize(this,tv_login,0.04f);
-        TextSizeUtil.setTextSize(this,activity_login_btn_confirm,0.04f);
+        TextSizeUtil.setTextSize(this, tv_title, 0.07f);
+        TextSizeUtil.setTextSize(this, tv_login, 0.04f);
+        TextSizeUtil.setTextSize(this, activity_login_btn_confirm, 0.04f);
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                validateP();
+            }
+        },1000);
     }
+
+    private void validateP(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!Settings.canDrawOverlays(LoginActivity.this)) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:" + getPackageName()));
+                startActivityForResult(intent, 101);
+            }
+        }
+        String p[] = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.READ_PHONE_STATE,
+                Manifest.permission.WRITE_SETTINGS,
+                Manifest.permission.CAMERA};
+        ActivityCompat.requestPermissions(
+                this,
+                p,
+                1
+        );
+    }
+
 
     @Override
     protected void initListener() {
@@ -55,7 +92,7 @@ public class LoginActivity extends BaseActivity{
         activity_login_btn_confirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                startActivity(new Intent(LoginActivity.this,SearchActivity.class));
+               startActivity(new Intent(LoginActivity.this,SearchActivity.class));
                 if( validate()){
 //                    Login.saveInfo(activity_login_tv_acount.getText().toString(),activity_login_tv_password.getText().toString());
 //                    LoginHandler.getInstance().login(Login.getLogin(activity_login_tv_acount.getText().toString(),activity_login_tv_password.getText().toString()));

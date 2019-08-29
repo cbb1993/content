@@ -144,21 +144,6 @@ public class SettingActivity extends BaseActivity implements ApiClient.ApiClient
 //
 //        DateHandler d = new DateHandler();
 //        d.handle(planDateList);
-        String p[] = new String[0];
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            p = new String[]{ Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.READ_PHONE_STATE,
-                    Manifest.permission.WRITE_SETTINGS,
-                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION};
-        }
-        ActivityCompat.requestPermissions(
-                this,
-                p,
-                1
-        );
     }
 
     private void initH5UrlList()
@@ -331,12 +316,6 @@ public class SettingActivity extends BaseActivity implements ApiClient.ApiClient
             activity_setting_ev_keeptime.setText(info.getWebKeepTime());
         }
 
-        List<String> stringList = new ArrayList<>();
-        stringList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        stringList.add(Manifest.permission.READ_CONTACTS);
-        stringList.add(Manifest.permission.CAMERA);
-        stringList.add(Manifest.permission.READ_PHONE_STATE);
-        PermissionUtil.requestPermisionListIfNot(this,stringList,0);
     }
 
     @Override
