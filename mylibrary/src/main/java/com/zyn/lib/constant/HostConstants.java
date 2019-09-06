@@ -14,6 +14,9 @@ public class HostConstants
     public static final String BASEHOST="http://content.aiairy.com";
 
 
+    public static final String IMG_HOST="https://ryzf.oss-cn-shanghai.aliyuncs.com/";
+
+
 
 //    public static final String HOST = "192.168.3.25";
 //    public static final String BASEHOST="http://192.168.3.25:8088/";

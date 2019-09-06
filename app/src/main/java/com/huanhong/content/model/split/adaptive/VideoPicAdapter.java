@@ -59,22 +59,28 @@ public class VideoPicAdapter extends Adapter {
     private boolean open = true;
     private int webTime = 10_000; // 30没有触摸
     private WebView webview;
+    private ImageView image;
     private Timer mKeepTimer;
     private TimerTask mKeepTimerTask;
     private Handler mMainHandler;
     private static final long DOUBLE_TIME = 1000;
     private static long lastClickTime = 0;
-    private int current ;
+
+    private int currentType = 0; // 1 视频  2图片  3 网页
+
+    private int imgTime = 10_000;
+    private ImageView iv_play;
 
     private boolean pause =false;
     class ItemData{
         String name,no;
-        int pic;
+        int pic,type;
 
-    public ItemData(int pic, String name, String no) {
+    public ItemData(int pic, String name, String no,int type) {
         this.pic = pic;
         this.name = name;
         this.no = no;
+        this.type = type;
     }
 }
 
@@ -87,12 +93,12 @@ private List<ItemData> itemData =new ArrayList<>();
         itemData.add(new ItemData(
              R.mipmap.pic_test1,
              "Dyson戴森 吹风机",
-                "https://detail.tmall.com/item.htm?spm=a1z10.4-b-s.w16608505-14629593645.2.53a8f0c9ERxxHI&id=536027498869"
+                "https://detail.tmall.com/item.htm?spm=a1z10.4-b-s.w16608505-14629593645.2.53a8f0c9ERxxHI&id=536027498869",1
         ));
          itemData.add(new ItemData(
                  R.mipmap.pic_test2,
                      "Dyson戴森V11 Absolute智能无线吸尘器",
-                        "https://detail.tmall.com/item.htm?spm=a220m.1000858.1000725.1.65a22065GoeOkg&id=589345613482&skuId=4030847957373&areaId=310100&user_id=2089100916&cat_id=2&is_b=1&rn=9dd4b764e9c33fcd81690ac2e568aec9"
+                        "https://detail.tmall.com/item.htm?spm=a220m.1000858.1000725.1.65a22065GoeOkg&id=589345613482&skuId=4030847957373&areaId=310100&user_id=2089100916&cat_id=2&is_b=1&rn=9dd4b764e9c33fcd81690ac2e568aec9",2
                 ));
 
     }
@@ -138,12 +144,13 @@ private List<ItemData> itemData =new ArrayList<>();
 
         //创建并添加 view
         View view = LayoutInflater.from(getContext()).inflate(R.layout.item_pic_video, null);
-
+        iv_play = view.findViewById(R.id.iv_play);
         rl_right = view.findViewById(R.id.rl_right);
         iv_open = (ImageView) view.findViewById(R.id.iv_open);
         webview = (WebView) view.findViewById(R.id.webview);
         initWeb();
         mVideoView = (VideoView) view.findViewById(R.id.video);
+        image = (ImageView) view.findViewById(R.id.image);
         recycle_pic = (RecyclerView) view.findViewById(R.id.recycle_pic);
         recycle_pic.setLayoutManager(new LinearLayoutManager(getContext()));
         recycle_pic.setAdapter(new CommonAdapter<ServerContent>(getContext(), R.layout.item_video, mPathList) {
@@ -169,7 +176,8 @@ private List<ItemData> itemData =new ArrayList<>();
                 root.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        startP(holder.getRealPosition());
+//                        startP(holder.getRealPosition());
+                        playByPosition(holder.getRealPosition());
                     }
                 });
             }
@@ -202,7 +210,6 @@ private List<ItemData> itemData =new ArrayList<>();
             public void onClick(View v) {
                 long currentTimeMillis = System.currentTimeMillis();
                 if (currentTimeMillis - lastClickTime < DOUBLE_TIME) {
-                    current=mVideoView.getCurrentPosition();
                     pause=true;
                     mVideoView.pause();
                     webview.loadUrl(itemData.get(mCount).no);
@@ -218,22 +225,37 @@ private List<ItemData> itemData =new ArrayList<>();
             }
         });
 
-        ThreadUtils.runOnWorkThread(new Runnable() {
+        playByPosition(0);
+
+//        ThreadUtils.runOnWorkThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                long duration = 0;
+//                if (mIsNeedSeekTo) {
+//                    duration = seekTo(System.currentTimeMillis() - mStartTime);
+//                }
+//                final long finalDuration = duration;
+//                ThreadUtils.runOnMainThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        playByPosition(0);
+//                    }
+//                }, 0);
+//            }
+//        }, 0);
+
+        iv_play.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void run() {
-                long duration = 0;
-                if (mIsNeedSeekTo) {
-                    duration = seekTo(System.currentTimeMillis() - mStartTime);
+            public void onClick(View v) {
+                if(currentType == 3){
+                    iv_play.setImageResource(R.mipmap.detail);
+                    playByPosition(mCount);
+                }else {
+                    iv_play.setImageResource(R.mipmap.video);
+                    showWeb();
                 }
-                final long finalDuration = duration;
-                ThreadUtils.runOnMainThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        startNextVideo((int) 0);
-                    }
-                }, 0);
             }
-        }, 0);
+        });
     }
 
     private void stop(){
@@ -242,11 +264,13 @@ private List<ItemData> itemData =new ArrayList<>();
         }
         //先暂停
         mVideoView.pause();
-        mVideoView.stopPlayback();
+//        mVideoView.stopPlayback();
     }
 
     private void showWeb(){
+        currentType = 3;
         stop();
+        image.setVisibility(View.GONE);
         webview.loadUrl(itemData.get(mCount).no);
         resetKeepTimer();
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
@@ -258,10 +282,76 @@ private List<ItemData> itemData =new ArrayList<>();
 
     }
 
-    private void showVideo(){
-        webview.setVisibility(View.GONE);
-        startNextVideo(0);
+
+    private void playNext(){
+        if(mCount>-1 &&mCount<itemData.size()){
+            if(mCount==itemData.size()-1){
+                mCount = 0;
+            }else {
+                mCount++;
+            }
+        }
+        playByPosition(mCount);
     }
+
+    private void playByPosition(int p){
+        mCount =p;
+        switch (itemData.get(p).type){
+            case 1: // 视频
+                playVideo(FileUtil.getPathByShowPath(mPathList
+                        .get(mCount)
+                        .getShowPath()));
+                break;
+            case 2:// 图片
+                playImg("https://img.alicdn.com/imgextra/i1/2089100916/O1CN01wQAZ0B1IdZJD6lhsn_!!2089100916.jpg_430x430q90.jpg");
+                break;
+        }
+        recycle_pic.getAdapter().notifyDataSetChanged();
+    }
+
+    private void playVideo(String url){
+        currentType = 1;
+        image.setVisibility(View.GONE);
+        webview.setVisibility(View.GONE);
+        mVideoView.setVisibility(View.VISIBLE);
+        if (mVideoView == null) {
+            return;
+        }
+        if(url.equals(mCurr)){
+            // 还是当前视频
+        }else {
+            //先暂停
+            mVideoView.pause();
+            mVideoView.stopPlayback();
+            mCurr = url;
+            mCurr = mCurr.replace("o_1cvf1eh901s2lol434utib1k13e","test1") ;
+            mVideoView.setVideoPath(mCurr);
+        }
+        mVideoView.start();
+    }
+    private void playImg(String url){
+        currentType = 2;
+        mVideoView.setVisibility(View.GONE);
+        webview.setVisibility(View.GONE);
+        image.setVisibility(View.VISIBLE);
+        if (mVideoView == null) {
+            return;
+        }
+        //先暂停
+        mVideoView.pause();
+        mVideoView.stopPlayback();
+
+//        if(url.equals(mCurr)){
+//            // 还是当前图片 计时继续
+//        }else {
+//            // 重新计时
+//
+//        }
+        resetImageKeepTimer(imgTime);
+        mCurr= url;
+        Glide.with(getContext()).load(url).into(image);
+    }
+
 
     private void initWeb(){
         webview
@@ -302,6 +392,7 @@ private List<ItemData> itemData =new ArrayList<>();
             {
                 if (event.getActionMasked() == MotionEvent.ACTION_DOWN || event.getActionMasked() == MotionEvent.ACTION_UP)
                 {
+                    // 重置webview时间
                     if(pause){
                         resetPauseKeepTimer();
                     }else {
@@ -330,7 +421,7 @@ private List<ItemData> itemData =new ArrayList<>();
                     public void run()
                     {
                         // 继续播放视频
-                        showVideo();
+                        playNext();
                     }
                 });
             }
@@ -355,21 +446,46 @@ private List<ItemData> itemData =new ArrayList<>();
                     @Override
                     public void run()
                     {
-                        // 继续播放视频
-                        if(mVideoView!=null){
+                        // 继续播放
                             webview.setVisibility(View.GONE);
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    mVideoView.start();
+                                    playByPosition(mCount);
                                 }
                             },500);
-                        }
                     }
                 });
             }
         };
         mKeepTimer.schedule(mKeepTimerTask, webTime);
+    }
+
+    private void resetImageKeepTimer(int time)
+    {
+        if (mKeepTimerTask != null)
+        {
+            mKeepTimerTask.cancel();
+        }
+
+        mKeepTimerTask = new TimerTask()
+        {
+            @Override
+            public void run()
+            {
+                mMainHandler.post(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        // 显示网页
+                        pause = false;
+                        showWeb();
+                    }
+                });
+            }
+        };
+        mKeepTimer.schedule(mKeepTimerTask, time);
     }
 
     private void startNextVideo(int seekTo) {
@@ -485,7 +601,6 @@ private List<ItemData> itemData =new ArrayList<>();
             if (bg == null) {
                 return null;
             }
-
             //获得视频帧
             Bitmap bitmap = MediaUtils.getMediaKeyFrame(FileUtil.getPathByShowPath(mCurr), mVideoView.getCurrentPosition());
             if (bitmap != null) {

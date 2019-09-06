@@ -74,7 +74,7 @@
         <activity android:name=".view.activity.LoginActivity"
                   android:screenOrientation="landscape"/>
         <activity android:name=".view.activity.SearchActivity" />
-        <activity android:name=".view.activity.VideoListActivity" />
+        <!--<activity android:name=".view.activity.VideoListActivity" />-->
 
         <service
             android:name="com.gprinter.service.GpPrintService"

@@ -154,18 +154,18 @@ public class ScheduleManager {
                 }
             }
             break;
-//            case ServerSchedule.TYPE_VIDEO: {
-//                if (mTotalScheduleListener != null) {
-//                    mTotalScheduleListener.playVideoPic(urlList, Utils.getTimestamp(Utils.getCurrDate(), mSchedule.getStart()), false);
-//                    Log.e(TAG, id + ":" + "开始播放视频和图片:" + urlList.toString());
-//                }
-//            }
             case ServerSchedule.TYPE_VIDEO: {
                 if (mTotalScheduleListener != null) {
-                    mTotalScheduleListener.playVideo(urlList, Utils.getTimestamp(Utils.getCurrDate(), mSchedule.getStart()), false);
-                    Log.e(TAG, id + ":" + "开始播放视频:" + urlList.toString());
+                    mTotalScheduleListener.playVideoPic(urlList, Utils.getTimestamp(Utils.getCurrDate(), mSchedule.getStart()), false);
+                    Log.e(TAG, id + ":" + "开始播放视频和图片:" + urlList.toString());
                 }
             }
+//            case ServerSchedule.TYPE_VIDEO: {
+//                if (mTotalScheduleListener != null) {
+//                    mTotalScheduleListener.playVideo(urlList, Utils.getTimestamp(Utils.getCurrDate(), mSchedule.getStart()), false);
+//                    Log.e(TAG, id + ":" + "开始播放视频:" + urlList.toString());
+//                }
+//            }
             break;
             default: {
                 Log.e(TAG, id + ":" + "异常: 计划类别未识别");
