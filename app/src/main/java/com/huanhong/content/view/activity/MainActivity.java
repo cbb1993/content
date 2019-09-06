@@ -2,6 +2,7 @@ package com.huanhong.content.view.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -63,7 +64,11 @@ public class MainActivity extends BaseActivity implements MainView
         mLayoutParams = new WindowManager.LayoutParams();
         mLayoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
         mLayoutParams.height = WindowManager.LayoutParams.MATCH_PARENT;
-        mLayoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;//关键,可以屏蔽状态栏和导航栏
+        if (Build.VERSION.SDK_INT>=26) {//8.0新特性
+             mLayoutParams.type= WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        }else{
+            mLayoutParams.type= WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
+        }
         mLayoutParams.flags = WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                 | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON | WindowManager.LayoutParams.FLAG_FULLSCREEN;
 
